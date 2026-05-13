@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GuruPrompt — AI Prompt Engine untuk Guru Malaysia</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0b1d35;--navy2:#102444;--navy3:#1a3560;--navy4:#244a85;
+  --gold:#c8942e;--gold2:#e2b34a;--gold3:#f5d07a;
+  --goldpale:#fdf7e8;--goldbg:#faf2dc;
+  --white:#fff;--bg:#f5f7fc;--bg2:#eef1f8;
+  --bdr:#dde2ef;--bdr2:#c8cfdf;
+  --tx:#0b1d35;--tx2:#2d3f5e;--tx3:#5a6e8f;--tx4:#8fa0bb;
+  --r:13px;--rsm:8px;
+  --sh:0 2px 16px rgba(11,29,53,.08);--shsm:0 1px 6px rgba(11,29,53,.05);
+}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:14.5px;line-height:1.65}
+
+/* LANG GATE */
+#gate{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px}
+.gbox{max-width:400px;width:100%;text-align:center}
+.glogo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--gold),#a06618);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:var(--navy);margin:0 auto 18px}
+.gtitle{font-size:22px;font-weight:800;color:#fff;letter-spacing:-.03em;margin-bottom:6px}
+.gsub{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:26px;line-height:1.6}
+.gopts{display:flex;flex-direction:column;gap:9px}
+.gbtn2{padding:13px 18px;border-radius:var(--r);border:1.5px solid rgba(201,150,58,.25);background:rgba(201,150,58,.06);font-size:13.5px;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:12px;text-align:left;color:#fff}
+.gbtn2:hover{background:rgba(201,150,58,.14);border-color:var(--gold2);transform:translateY(-1px)}
+.gflag{font-size:20px;flex-shrink:0}
+.giname{display:block;font-size:13.5px;font-weight:700;color:#fff}
+.gisub{display:block;font-size:11px;color:rgba(255,255,255,.35);margin-top:1px;font-weight:400}
+
+/* TOPBAR */
+#tb{background:var(--navy);height:52px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;border-bottom:1px solid rgba(201,150,58,.1)}
+.tbrand{display:flex;align-items:center;gap:8px}
+.tlogo{width:27px;height:27px;border-radius:7px;background:linear-gradient(135deg,var(--gold),#a06618);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:var(--navy)}
+.tname{font-size:14.5px;font-weight:800;color:#fff;letter-spacing:-.02em}
+.tname b{color:var(--gold2)}
+.tright{display:flex;gap:8px;align-items:center}
+.tlangbtn{font-size:11px;font-weight:700;padding:4px 11px;border-radius:20px;border:1px solid rgba(201,150,58,.22);color:var(--gold2);background:rgba(201,150,58,.07);cursor:pointer;transition:all .14s;display:flex;align-items:center;gap:5px}
+.tlangbtn:hover{background:rgba(201,150,58,.14)}
+.tbadge{font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.35)}
+
+/* HERO */
+#hero{background:linear-gradient(155deg,var(--navy) 0%,var(--navy2) 55%,#1a2f5a 100%);padding:42px 20px 38px;position:relative;overflow:hidden}
+#hero::before{content:'';position:absolute;top:-80px;right:-60px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(201,150,58,.06) 0%,transparent 65%);pointer-events:none}
+.heroin{max-width:700px;margin:0 auto;text-align:center;position:relative;z-index:1}
+.heye{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold2);border:1px solid rgba(201,150,58,.2);border-radius:20px;padding:4px 13px;background:rgba(201,150,58,.07);margin-bottom:13px}
+#hero h1{font-size:clamp(1.5rem,3.5vw,2.2rem);font-weight:800;color:#fff;line-height:1.13;letter-spacing:-.04em;margin-bottom:9px}
+.acc{background:linear-gradient(90deg,var(--gold2),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.herp{color:rgba(255,255,255,.42);font-size:13px;max-width:440px;margin:0 auto;line-height:1.7}
+
+/* MAIN */
+#main{max-width:760px;margin:0 auto;padding:24px 16px 80px}
+.slabel{font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3);margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.slabel::before{content:'';width:3px;height:3px;border-radius:50%;background:var(--gold);display:block}
+
+/* TASK GRID */
+.tgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-bottom:20px}
+@media(max-width:540px){.tgrid{grid-template-columns:repeat(2,1fr)}}
+.tgi{background:var(--white);border:1.5px solid var(--bdr);border-radius:var(--r);padding:12px 8px 10px;cursor:pointer;transition:all .14s;text-align:center}
+.tgi:hover{border-color:var(--navy3)}
+.tgi.on{border-color:var(--gold);background:var(--goldbg);box-shadow:0 0 0 3px rgba(201,150,58,.09)}
+.tgi-ico{font-size:19px;margin-bottom:5px}
+.tgi-n{font-size:10.5px;font-weight:700;color:var(--tx);line-height:1.3}
+
+/* DYNAMIC FORM */
+#dform{background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);padding:22px;box-shadow:var(--shsm);margin-bottom:13px;display:none}
+.ft{font-size:14.5px;font-weight:800;color:var(--tx);display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.fd{font-size:12px;color:var(--tx3);padding-bottom:14px;border-bottom:1px solid var(--bdr);margin-bottom:18px;line-height:1.6}
+.fg{margin-bottom:15px}.fg:last-of-type{margin-bottom:0}
+.fg>label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);margin-bottom:6px}
+.fg .fhint{font-size:11px;color:var(--tx4);margin-top:4px;font-style:italic}
+.fg input,.fg select,.fg textarea{width:100%;padding:10px 13px;border:1.5px solid var(--bdr);border-radius:var(--rsm);font-size:13.5px;font-family:'Plus Jakarta Sans',sans-serif;background:var(--white);color:var(--tx);outline:none;transition:border-color .17s,box-shadow .17s;-webkit-appearance:none;appearance:none}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--navy3);box-shadow:0 0 0 3px rgba(26,53,96,.08)}
+.fg textarea{resize:vertical;min-height:68px;line-height:1.6}
+.fg-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:480px){.fg-2,.fg-3{grid-template-columns:1fr}}
+.req{color:var(--gold);margin-left:1px}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.ch{padding:6px 12px;border-radius:22px;border:1.5px solid var(--bdr2);font-size:11.5px;font-weight:600;cursor:pointer;background:var(--white);color:var(--tx2);transition:all .13s;font-family:'Plus Jakarta Sans',sans-serif;user-select:none}
+.ch:hover{border-color:var(--navy3);color:var(--navy)}
+.ch.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.ch.multi.on{background:var(--navy3);border-color:var(--navy3);color:#fff}
+
+/* DIVIDER */
+.fdiv{height:1px;background:var(--bdr);margin:16px 0}
+
+/* PLATFORM */
+.plats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+@media(max-width:380px){.plats{grid-template-columns:repeat(2,1fr)}}
+.plat{padding:9px 6px;border-radius:var(--rsm);border:1.5px solid var(--bdr);background:var(--bg);text-align:center;cursor:pointer;transition:all .13s;font-family:'Plus Jakarta Sans',sans-serif}
+.plat:hover{border-color:var(--bdr2)}
+.plat.on{border-color:var(--gold);background:var(--goldbg)}
+.plat-ico{font-size:16px;display:block;margin-bottom:3px}
+.plat-name{font-size:11px;font-weight:700;color:var(--tx)}
+
+/* GEN BTN */
+.genbtn{width:100%;padding:14px;background:var(--navy);color:var(--gold2);border:none;border-radius:var(--rsm);font-size:14.5px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:none;align-items:center;justify-content:center;gap:8px;transition:all .2s;box-shadow:0 4px 16px rgba(11,29,53,.2);position:relative;overflow:hidden}
+.genbtn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,150,58,.1),transparent 55%);pointer-events:none}
+.genbtn:hover{background:var(--navy3);transform:translateY(-2px);box-shadow:0 7px 24px rgba(11,29,53,.27)}
+.genbtn:active{transform:none}
+
+/* OUTPUT */
+#outWrap{display:none;margin-top:16px;animation:fu .35s ease}
+@keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.ocard{background:var(--white);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh)}
+.ohd{background:var(--navy);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px}
+.otags{display:flex;gap:5px;flex-wrap:wrap}
+.ot{font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;letter-spacing:.02em}
+.ot-t{background:rgba(201,150,58,.2);color:var(--gold3)}
+.ot-s{background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)}
+.ot-p{background:rgba(139,92,246,.12);color:rgba(196,181,253,.9)}
+.oacts{display:flex;gap:6px}
+.oa{padding:7px 13px;border-radius:var(--rsm);border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);font-size:11px;font-weight:700;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:4px;transition:all .13s}
+.oa:hover{background:rgba(255,255,255,.1);color:#fff}
+.oa.gold{background:var(--gold);border-color:var(--gold);color:var(--navy)}
+.oa.gold:hover{background:var(--gold2)}
+.obody{padding:20px}
+.olbl{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--tx4);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.olbl::after{content:'';flex:1;height:1px;background:var(--bdr)}
+.pbox{background:var(--bg);border:1px solid var(--bdr);border-radius:var(--rsm);padding:18px 18px 18px 22px;position:relative;font-size:13px;line-height:1.95;color:var(--tx2);white-space:pre-wrap;word-break:break-word}
+.pbox::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(to bottom,var(--gold),var(--gold2));border-radius:3px 0 0 3px}
+.tipswrap{margin-top:14px}
+.tipslbl{font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--tx4);margin-bottom:7px}
+.tipsrow{display:flex;flex-wrap:wrap;gap:5px}
+.tip{font-size:11px;padding:4px 11px;border-radius:20px;border:1.5px dashed var(--bdr2);background:transparent;color:var(--tx3);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .13s;font-weight:600}
+.tip:hover{border-style:solid;border-color:var(--gold);color:var(--gold);background:var(--goldpale)}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--navy);color:var(--gold2);padding:10px 20px;border-radius:var(--rsm);font-size:13px;font-weight:700;border:1px solid rgba(201,150,58,.2);box-shadow:0 8px 30px rgba(11,29,53,.25);transition:transform .3s;z-index:999;white-space:nowrap;font-family:'Plus Jakarta Sans',sans-serif}
+#toast.show{transform:translateX(-50%) translateY(0)}
+footer{background:var(--navy);border-top:1px solid rgba(201,150,58,.08);text-align:center;padding:20px;color:rgba(255,255,255,.25);font-size:11px}
+footer strong{color:var(--gold2)}
+</style>
+</head>
+<body>
+
+<!-- LANGUAGE GATE -->
+<div id="gate">
+  <div class="gbox">
+    <div class="glogo">G</div>
+    <div class="gtitle">GuruPrompt</div>
+    <div class="gsub">AI Prompt Engine untuk Guru Malaysia<br>Pilih bahasa sebelum mula</div>
+    <div class="gopts">
+      <button class="gbtn2" onclick="boot('ms')"><span class="gflag">🇲🇾</span><span><span class="giname">Bahasa Melayu</span><span class="gisub">Antara muka &amp; prompt dalam Bahasa Melayu</span></span></button>
+      <button class="gbtn2" onclick="boot('en')"><span class="gflag">🇬🇧</span><span><span class="giname">English</span><span class="gisub">Interface &amp; prompts in English</span></span></button>
+      <button class="gbtn2" onclick="boot('bi')"><span class="gflag">🔀</span><span><span class="giname">Dwibahasa / Bilingual</span><span class="gisub">BM interface, boleh pilih bahasa prompt</span></span></button>
+    </div>
+  </div>
+</div>
+
+<!-- TOPBAR -->
+<div id="tb">
+  <div class="tbrand">
+    <div class="tlogo">G</div>
+    <span class="tname">Guru<b>Prompt</b></span>
+  </div>
+  <div class="tright">
+    <button class="tlangbtn" onclick="document.getElementById('gate').style.display='flex'"><span id="tbFlag">🇲🇾</span> <span id="tbLang">BM</span></button>
+    <span class="tbadge">SK &amp; SMK · Semua Subjek</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<div id="hero">
+  <div class="heroin">
+    <div class="heye">✦ &nbsp;<span id="hEye">AI Prompt Engineer · Guru Malaysia</span></div>
+    <h1><span id="hT1">Prompt AI yang</span> <span class="acc" id="hT2">Tepat &amp; Spesifik</span><br><span id="hT3">Untuk Setiap Tugasan Guru</span></h1>
+    <p class="herp" id="hP">Jawab soalan yang betul, dapatkan prompt yang betul-betul berguna — bukan generik.</p>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div class="slabel" id="lS1">&#9642;&nbsp;Langkah 1 — Pilih Tugasan</div>
+  <div class="tgrid">
+    <div class="tgi on" data-v="rph" onclick="pick(this)"><div class="tgi-ico">📋</div><div class="tgi-n" id="tn0">RPH</div></div>
+    <div class="tgi" data-v="soalan" onclick="pick(this)"><div class="tgi-ico">📝</div><div class="tgi-n" id="tn1">Soalan</div></div>
+    <div class="tgi" data-v="bahan" onclick="pick(this)"><div class="tgi-ico">📚</div><div class="tgi-n" id="tn2">Bahan PdP</div></div>
+    <div class="tgi" data-v="kertas" onclick="pick(this)"><div class="tgi-ico">📂</div><div class="tgi-n" id="tn3">Kertas Kerja</div></div>
+    <div class="tgi" data-v="poster" onclick="pick(this)"><div class="tgi-ico">🖼️</div><div class="tgi-n" id="tn4">Poster</div></div>
+    <div class="tgi" data-v="skrip" onclick="pick(this)"><div class="tgi-ico">🎙️</div><div class="tgi-n" id="tn5">Skrip MC</div></div>
+    <div class="tgi" data-v="surat" onclick="pick(this)"><div class="tgi-ico">✉️</div><div class="tgi-n" id="tn6">Surat Rasmi</div></div>
+    <div class="tgi" data-v="analisis" onclick="pick(this)"><div class="tgi-ico">📊</div><div class="tgi-n" id="tn7">Analisis</div></div>
+    <div class="tgi" data-v="rubrik" onclick="pick(this)"><div class="tgi-ico">⚖️</div><div class="tgi-n" id="tn8">Rubrik</div></div>
+    <div class="tgi" data-v="aktiviti" onclick="pick(this)"><div class="tgi-ico">🎮</div><div class="tgi-n" id="tn9">Aktiviti</div></div>
+  </div>
+
+  <div class="slabel" id="lS2">&#9642;&nbsp;Langkah 2 — Isi Butiran</div>
+  <div id="dform"></div>
+  <button class="genbtn" id="genbtn" onclick="generate()"><span style="font-size:16px">✦</span> <span id="gbtnTxt">Jana Prompt Sekarang</span></button>
+
+  <div id="outWrap">
+    <div class="ocard">
+      <div class="ohd">
+        <div class="otags"><span class="ot ot-t" id="oT">—</span><span class="ot ot-s" id="oS">—</span><span class="ot ot-p" id="oP">—</span></div>
+        <div class="oacts">
+          <button class="oa gold" onclick="copyP()">📋 <span id="oCopy">Salin</span></button>
+          <button class="oa" onclick="shareWA()">📤 WA</button>
+        </div>
+      </div>
+      <div class="obody">
+        <div class="olbl" id="oLbl">Prompt sedia — tampal ke AI anda</div>
+        <div class="pbox" id="pbox"></div>
+        <div class="tipswrap"><div class="tipslbl" id="tLbl">💡 Klik untuk tambah baik:</div><div class="tipsrow" id="trow"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer><strong>GuruPrompt</strong> &nbsp;·&nbsp; Untuk Guru Malaysia · SK &amp; SMK · Semua Subjek<br><span style="margin-top:3px;display:block">Semak output AI sebelum digunakan dalam kelas.</span></footer>
+<div id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+var L = 'ms';
+var task = 'rph';
+
+var FLAGS = {ms:'🇲🇾', en:'🇬🇧', bi:'🔀'};
+var LANG_LABELS = {ms:'BM', en:'EN', bi:'BM+EN'};
+
+var TNAMES = {
+  ms:  ['RPH','Soalan','Bahan PdP','Kertas Kerja','Poster','Skrip MC','Surat Rasmi','Analisis','Rubrik','Aktiviti'],
+  en:  ['Lesson Plan','Exam Q','Materials','Project Paper','Poster','MC Script','Official Letter','Analysis','Rubric','Activities'],
+  bi:  ['RPH','Soalan/Exam','Bahan PdP','Kertas Kerja','Poster','Skrip MC','Surat/Letter','Analisis','Rubrik','Aktiviti']
+};
+var TASK_KEYS = ['rph','soalan','bahan','kertas','poster','skrip','surat','analisis','rubrik','aktiviti'];
+
+var UI = {
+  ms: {s1:'Langkah 1 — Pilih Tugasan', s2:'Langkah 2 — Isi Butiran', gen:'Jana Prompt Sekarang', copy:'Salin', oLbl:'Prompt sedia — tampal ke AI anda', tLbl:'💡 Klik untuk tambah baik:', toast:'✦ Prompt disalin!', hEye:'AI Prompt Engineer · Guru Malaysia', hT1:'Prompt AI yang', hT2:'Tepat &amp; Spesifik', hT3:'Untuk Setiap Tugasan Guru', hP:'Jawab soalan yang betul, dapatkan prompt yang betul-betul berguna — bukan generik.'},
+  en: {s1:'Step 1 — Select Task', s2:'Step 2 — Fill In Details', gen:'Generate Prompt Now', copy:'Copy', oLbl:'Prompt ready — paste into your AI', tLbl:'💡 Click to enhance:', toast:'✦ Copied!', hEye:'AI Prompt Engineer · Malaysian Teachers', hT1:'AI Prompts that are', hT2:'Precise &amp; Specific', hT3:'For Every Teaching Task', hP:'Answer the right questions, get a prompt that truly fits — not a generic one.'},
+  bi:  {s1:'Langkah 1 / Step 1', s2:'Langkah 2 / Step 2 — Butiran', gen:'Jana / Generate Prompt', copy:'Salin/Copy', oLbl:'Prompt sedia / ready — paste to AI', tLbl:'💡 Tambah baik / Enhance:', toast:'✦ Disalin / Copied!', hEye:'AI Prompt Engineer · Guru Malaysia', hT1:'Prompt AI yang', hT2:'Tepat &amp; Spesifik', hT3:'Untuk Setiap Tugasan Guru', hP:'Jawab soalan yang betul, dapatkan prompt tepat — bukan generik.'}
+};
+
+function u(k){ return UI[L][k] || UI.ms[k]; }
+
+// ── BOOT ───────────────────────────────────────────────────────────────────
+function boot(lang) {
+  L = lang;
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('tbFlag').textContent = FLAGS[lang];
+  document.getElementById('tbLang').textContent = LANG_LABELS[lang];
+  applyUI();
+  buildForm(task);
+}
+
+function applyUI() {
+  document.getElementById('lS1').innerHTML = '&#9642;&nbsp;' + u('s1');
+  document.getElementById('lS2').innerHTML = '&#9642;&nbsp;' + u('s2');
+  document.getElementById('gbtnTxt').textContent = u('gen');
+  document.getElementById('oCopy').textContent = u('copy');
+  document.getElementById('oLbl').textContent = u('oLbl');
+  document.getElementById('tLbl').textContent = u('tLbl');
+  document.getElementById('hEye').textContent = u('hEye');
+  document.getElementById('hT1').textContent = u('hT1');
+  document.getElementById('hT2').innerHTML = u('hT2');
+  document.getElementById('hT3').textContent = u('hT3');
+  document.getElementById('hP').textContent = u('hP');
+  var names = TNAMES[L];
+  for (var i = 0; i < names.length; i++) {
+    var el = document.getElementById('tn' + i);
+    if (el) el.textContent = names[i];
+  }
+}
+
+// ── TASK PICK ──────────────────────────────────────────────────────────────
+function pick(el) {
+  document.querySelectorAll('.tgi').forEach(function(t){ t.classList.remove('on'); });
+  el.classList.add('on');
+  task = el.dataset.v;
+  buildForm(task);
+  document.getElementById('outWrap').style.display = 'none';
+}
+
+// ── CHIP HELPERS ───────────────────────────────────────────────────────────
+function sc(el, row) {
+  document.querySelectorAll('[data-row="' + row + '"]').forEach(function(c){ c.classList.remove('on'); });
+  el.classList.add('on');
+}
+function mc(el) { el.classList.toggle('on'); }
+
+function gcv(row) {
+  var a = document.querySelector('[data-row="' + row + '"].on');
+  return a ? a.dataset.v : '';
+}
+function gmv(row) {
+  return Array.from(document.querySelectorAll('[data-row="' + row + '"].on')).map(function(c){ return c.dataset.v; });
+}
+function gv(id) {
+  var el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+// ── HTML BUILDERS ─────────────────────────────────────────────────────────
+// Build chip HTML — NEVER use nested template literals
+function chipsHTML(row, items, defaultIdx) {
+  if (defaultIdx === undefined) defaultIdx = 0;
+  var html = '<div class="chips">';
+  for (var i = 0; i < items.length; i++) {
+    var v = items[i][0], lbl = items[i][1];
+    var cls = 'ch' + (i === defaultIdx ? ' on' : '');
+    html += '<div class="' + cls + '" data-row="' + row + '" data-v="' + v + '" onclick="sc(this,\'' + row + '\')">' + lbl + '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function mchipsHTML(row, items) {
+  var html = '<div class="chips">';
+  for (var i = 0; i < items.length; i++) {
+    var v = items[i][0], lbl = items[i][1];
+    html += '<div class="ch multi" data-row="' + row + '" data-v="' + v + '" onclick="mc(this)">' + lbl + '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function platHTML() {
+  var plbl = L === 'en' ? 'AI Platform' : 'Platform AI';
+  var olbl = L === 'en' ? 'Output language' : 'Bahasa output';
+  var langs = L === 'en'
+    ? [['English','English'],['Bahasa Melayu','BM'],['Bilingual BM+EN','Bilingual']]
+    : [['Bahasa Melayu','Bahasa Melayu'],['English','English'],['Dwibahasa (BM & BI)','Dwibahasa']];
+  var platItems = [['ChatGPT','ChatGPT'],['Claude','Claude'],['Gemini','Gemini'],['Copilot','Copilot']];
+
+  var html = '<div class="fdiv"></div>';
+  html += '<div class="fg-2">';
+  html += '<div class="fg"><label>' + plbl + '</label>';
+  html += '<div class="plats">';
+  var icons = ['🤖','🧠','✨','💠'];
+  for (var i = 0; i < platItems.length; i++) {
+    var cls = i === 0 ? 'plat on' : 'plat';
+    html += '<div class="' + cls + '" data-row="plat" data-v="' + platItems[i][0] + '" onclick="sc(this,\'plat\')">';
+    html += '<span class="plat-ico">' + icons[i] + '</span><span class="plat-name">' + platItems[i][0] + '</span></div>';
+  }
+  html += '</div></div>';
+  html += '<div class="fg"><label>' + olbl + '</label>' + chipsHTML('olang', langs) + '</div>';
+  html += '</div>';
+  return html;
+}
+
+function yearSelect() {
+  var opts = ['Tahun 1','Tahun 2','Tahun 3','Tahun 4','Tahun 5','Tahun 6','Tingkatan 1','Tingkatan 2','Tingkatan 3','Tingkatan 4','Tingkatan 5'];
+  var html = '<select id="f_year">';
+  for (var i = 0; i < opts.length; i++) {
+    html += '<option' + (opts[i] === 'Tingkatan 3' ? ' selected' : '') + '>' + opts[i] + '</option>';
+  }
+  html += '</select>';
+  return html;
+}
+
+function levelSelect() {
+  return '<select id="f_level"><option value="Sekolah Rendah">Sekolah Rendah (SK/SJK)</option><option value="Sekolah Menengah" selected>Sekolah Menengah (SMK)</option></select>';
+}
+
+function baseCore(topikPh, topikLbl) {
+  topikPh = topikPh || '';
+  topikLbl = topikLbl || (L === 'en' ? 'Topic / Chapter' : 'Topik / Tajuk');
+  var subjLbl = L === 'en' ? 'Subject' : 'Mata Pelajaran';
+  var bilLbl = L === 'en' ? 'No. of Students' : 'Bilangan Murid';
+  var levelLbl = L === 'en' ? 'Level' : 'Peringkat';
+  var yearLbl = L === 'en' ? 'Year / Form' : 'Tahun / Tingkatan';
+  var subjPh = L === 'en' ? 'e.g. Maths, Science, History, English...' : 'cth: Matematik, BM, Sains, Sejarah...';
+  var bilPh = L === 'en' ? 'e.g. 35 students' : 'cth: 35 orang';
+
+  var html = '<div class="fg-2">';
+  html += '<div class="fg"><label>' + subjLbl + ' <span class="req">★</span></label>';
+  html += '<input id="f_subj" placeholder="' + subjPh + '"></div>';
+  html += '<div class="fg"><label>' + topikLbl + ' <span class="req">★</span></label>';
+  html += '<input id="f_topik" placeholder="' + topikPh + '"></div>';
+  html += '</div>';
+  html += '<div class="fg-3">';
+  html += '<div class="fg"><label>' + levelLbl + '</label>' + levelSelect() + '</div>';
+  html += '<div class="fg"><label>' + yearLbl + '</label>' + yearSelect() + '</div>';
+  html += '<div class="fg"><label>' + bilLbl + ' <span class="req">★</span></label>';
+  html += '<input id="f_bil" placeholder="' + bilPh + '"></div>';
+  html += '</div>';
+  return html;
+}
+
+// ── FORM DEFINITIONS ──────────────────────────────────────────────────────
+function formRPH() {
+  var desc = L === 'en'
+    ? 'Answer the questions below. Every detail shapes a more precise lesson plan prompt.'
+    : 'Jawab soalan di bawah. Setiap butiran membentuk prompt RPH yang lebih tepat dan berguna.';
+  var topikPh = L === 'en' ? 'e.g. Fractions, Short Story, Cell Division...' : 'cth: Pecahan, Cerpen, Pembahagian Sel, Gaya Bahasa...';
+  var masaLbl = L === 'en' ? 'Lesson Duration ★' : 'Masa PdP ★';
+  var tujuanLbl = L === 'en' ? 'Purpose of This Lesson' : 'Tujuan PdP Ini';
+  var arasLbl = L === 'en' ? 'Student Ability (Majority)' : 'Aras Kemampuan Murid (Majoriti)';
+  var elemenLbl = L === 'en' ? 'Elements to Include (choose all)' : 'Elemen yang Mahu Dimasukkan';
+  var notesLbl = L === 'en' ? 'Additional Notes (optional)' : 'Catatan Khas (pilihan)';
+  var notesPh = L === 'en'
+    ? 'e.g. Students struggle with fractions, must include real-life examples, student with hearing impairment...'
+    : 'cth: Murid lemah dalam konsep perpuluhan, ada murid OKU penglihatan, perlu kaitkan dengan kehidupan harian...';
+
+  var masaItems = [['30 minit','30 min'],['40 minit','40 min'],['60 minit','60 min'],['80 minit','80 min']];
+  var tujuanItems = [['Pengenalan topik baru','Pengenalan topik baru'],['Pengukuhan & latihan','Pengukuhan'],['Pemulihan (murid lemah)','Pemulihan'],['Pengayaan (murid cemerlang)','Pengayaan'],['Ulangkaji peperiksaan','Ulangkaji']];
+  var arasItems = [['Bercampur / Pelbagai aras','Bercampur'],['Kebanyakan lemah','Majoriti lemah'],['Kebanyakan sederhana','Majoriti sederhana'],['Kebanyakan cemerlang','Majoriti cemerlang']];
+  var elemenItems = [['KBAT','KBAT'],['PAK-21 / Kolaborasi','PAK-21'],['TMK / Digital','TMK/Digital'],['Pembelajaran Terbeza','P. Terbeza'],['STEM','STEM'],['Nilai Murni','Nilai Murni']];
+
+  var h = '<div class="ft">📋 ' + (L === 'en' ? 'Lesson Plan (RPH)' : 'Rancangan Pengajaran Harian (RPH)') + '</div>';
+  h += '<div class="fd">' + desc + '</div>';
+  h += baseCore(topikPh);
+  h += '<div class="fg"><label>' + masaLbl + '</label>' + chipsHTML('masa', masaItems, 2) + '</div>';
+  h += '<div class="fg"><label>' + tujuanLbl + '</label>' + chipsHTML('tujuan', tujuanItems) + '</div>';
+  h += '<div class="fg"><label>' + arasLbl + '</label>' + chipsHTML('aras', arasItems) + '</div>';
+  h += '<div class="fg"><label>' + elemenLbl + '</label>' + mchipsHTML('elemen', elemenItems) + '</div>';
+  h += '<div class="fg"><label>' + notesLbl + '</label><textarea id="f_extra" placeholder="' + notesPh + '" style="min-height:60px"></textarea></div>';
+  h += platHTML();
+  return h;
+}
+
+function formSoalan() {
+  var desc = L === 'en' ? 'Be specific about topic, exam type and what you need included.' : 'Nyatakan topik, jenis ujian dan apa yang perlu disertakan secara spesifik.';
+  var topikPh = L === 'en' ? 'e.g. Simultaneous Equations, Narrative Essay, Cold War...' : 'cth: Persamaan Serentak, Karangan Perbahasan, Perang Dingin...';
+  var fmtItems = [['KSSR/KSSM standard','KSSR/KSSM'],['PT3','PT3'],['SPM','SPM'],['Ujian dalaman / kuiz','Dalaman/Kuiz']];
+  var jsoalanItems = [['Kertas penuh (obj+subjektif)','Kertas penuh'],['Objektif sahaja','Objektif sahaja'],['Subjektif / struktur sahaja','Subjektif sahaja'],['Esei KBAT sahaja','Esei KBAT'],['Kuiz ringkas (10 soalan)','Kuiz ringkas']];
+  var inclItems = [['Skema jawapan penuh','Skema jawapan'],['Arahan kepada calon','Arahan calon'],['Jadual Spesifikasi Ujian (JSS)','JSS/Blueprint'],['Rubrik esei','Rubrik esei']];
+
+  var h = '<div class="ft">📝 ' + (L === 'en' ? 'Exam / Test Questions' : 'Soalan Ujian &amp; Peperiksaan') + '</div>';
+  h += '<div class="fd">' + desc + '</div>';
+  h += baseCore(topikPh, L === 'en' ? 'Topic / Chapter' : 'Topik / Tajuk / Bab');
+  h += '<div class="fg"><label>' + (L === 'en' ? 'Exam Format' : 'Format Peperiksaan') + '</label>' + chipsHTML('fmt_exam', fmtItems) + '</div>';
+  h += '<div class="fg-2">';
+  h += '<div class="fg"><label>' + (L === 'en' ? 'Question Type' : 'Jenis Soalan') + '</label>' + chipsHTML('jsoalan', jsoalanItems) + '</div>';
+  h += '<div class="fg"><label>' + (L === 'en' ? 'Total Marks & Time' : 'Markah & Masa') + '</label><input id="f_markah" placeholder="' + (L === 'en' ? 'e.g. 60 marks, 1h 30min' : 'cth: 60 markah, 1 jam 30 minit') + '"></div>';
+  h += '</div>';
+  h += '<div class="fg"><label>' + (L === 'en' ? 'Include With Questions' : 'Sertakan Bersama Soalan') + '</label>' + mchipsHTML('incl_soalan', inclItems) + '</div>';
+  h += '<div class="fg"><label>' + (L === 'en' ? 'Special Focus / Notes' : 'Fokus Khas / Catatan') + '</label><textarea id="f_extra" placeholder="' + (L === 'en' ? 'e.g. Must include diagram questions, focus on Chapters 3-4, scenario-based only...' : 'cth: Mesti ada soalan rajah/graf, fokus Bab 3 dan 4 sahaja, semua soalan ada konteks kehidupan sebenar...') + '" style="min-height:60px"></textarea></div>';
+  h += platHTML();
+  return h;
+}
+
+function formBahan() {
+  var topikPh = L === 'en' ? 'e.g. Photosynthesis, Idioms, Ratios...' : 'cth: Fotosintesis, Peribahasa, Nisbah...';
+  var jbahanItems = [['Nota ringkas / Nota padat','Nota ringkas'],['Lembaran kerja (3 aras)','LK 3 aras'],['Soalan latih tubi','Latih tubi'],['Kad aktiviti / Flashcard','Kad/Flashcard'],['Infografik / Visual ringkas','Infografik']];
+  var sasaranItems = [['Semua aras (terbeza)','Semua aras'],['Murid lemah sahaja','Murid lemah'],['Murid cemerlang sahaja','Murid cemerlang']];
+  var mediumItems = [['Cetak (printable)','Cetak'],['Digital (Canva/Slides)','Digital'],['Kedua-dua','Kedua-dua']];
+
+  var h = '<div class="ft">📚 ' + (L === 'en' ? 'Teaching Materials (PdP)' : 'Bahan Pengajaran &amp; Pembelajaran') + '</div>';
+  h += '<div class="fd">' + (L === 'en' ? 'Specify exactly what material you need and for which students.' : 'Nyatakan dengan tepat bahan apa yang diperlukan dan untuk kumpulan murid mana.') + '</div>';
+  h += baseCore(topikPh);
+  h += '<div class="fg"><label>' + (L === 'en' ? 'Material Type Needed (choose all)' : 'Jenis Bahan Yang Diperlukan') + '</label>' + mchipsHTML('jbahan', jbahanItems) + '</div>';
+  h += '<div class="fg-2">';
+  h += '<div class="fg"><label>' + (L === 'en' ? 'Target Students' : 'Sasaran Murid') + '</label>' + chipsHTML('sasaran', sasaranItems) + '</div>';
+  h += '<div class="fg"><label>' + (L === 'en' ? 'Format' : 'Format') + '</label>' + chipsHTML('medium', mediumItems) + '</div>';
+  h += '</div>';
+  h += '<div class="fg"><label>' + (L === 'en' ? 'Special Requirements' : 'Keperluan Khas') + '</label><textarea id="f_extra" placeholder="' + (L === 'en' ? 'e.g. Include lots of visuals, suitable for dyslexic students, must fit on 1 A4 page...' : 'cth: Perlu banyak gambar/visual, sesuai untuk murid disleksia, muat dalam 1 muka surat A4, sertakan kunci jawapan...') + '" style="min-height:60px"></textarea></div>';
+  h += platHTML();
+  return h;
+}
+
+function formKertas() {
+  var jkertasItems = [['Program sehari','Sehari'],['Kem bermalam','Bermalam'],['Pertandingan','Pertandingan'],['Lawatan','Lawatan'],['Program bulanan','Bulanan']];
+  var sumberItems = [['SUWA','SUWA'],['PCG','PCG'],['PIBG','PIBG'],['Yuran peserta','Yuran'],['Pelbagai','Pelbagai']];
+  var inclItems = [['Jadual bajet terperinci','Jadual bajet'],['Carta AJK','Carta AJK'],['Aturcara program','Aturcara'],['Borang penilaian','Borang penilaian'],['Template laporan pasca','Template laporan']];
+
+  var h = '<div class="ft">📂 ' + (L === 'en' ? 'Project Paper / Kertas Kerja' : 'Kertas Kerja &amp; Laporan Program') + '</div>';
+  h += '<div class="fd">' + (L === 'en' ? 'Provide specific programme details for a complete, professional project paper.' : 'Berikan butiran program yang spesifik untuk kertas kerja yang lengkap dan profesional.') + '</div>';
+  h += '<div class="fg-2">';
+  h += '<div class="fg"><label>Nama Program <span class="req">★</span></label><input id="f_topik" placeholder="cth: Kem Sains, Hari Motivasi, Program Nilam..."></div>';
+  h += '<div class="fg"><label>Anjuran / Panel <span class="req">★</span></label><input id="f_subj" placeholder="cth: Panitia Sains, HEM, Persatuan STEM..."></div>';
+  h += '</div>';
+  h += '<div class="fg-3">';
+  h += '<div class="fg"><label>Peringkat</label>' + levelSelect() + '</div>';
+  h += '<div class="fg"><label>Anggaran Peserta <span class="req">★</span></label><input id="f_bil" placeholder="cth: 120 pelajar, semua T4"></div>';
+  h += '<div class="fg"><label>Anggaran Bajet</label><input id="f_bajet" placeholder="cth: RM 1,500"></div>';
+  h += '</div>';
+  h += '<div class="fg-2">';
+  h += '<div class="fg"><label>Jenis Program</label>' + chipsHTML('jkertas', jkertasItems) + '</div>';
+  h += '<div class="fg"><label>Sumber Kewangan</label>' + chipsHTML('sumber', sumberItems) + '</div>';
+  h += '</div>';
+  h += '<div class="fg"><label>Wajib Sertakan</label>' + mchipsHTML('kk_incl', inclItems) + '</div>';
+  h += '<div class="fg"><label>Catatan Tambahan</label><textarea id="f_extra" placeholder="cth: Program berkaitan bulan kemerdekaan, ada kerjasama dengan PPD, pertandingan peringkat zon..." style="min-height:55px"></textarea></div>';
+  h += platHTML();
+  return h;
+}
+
+function formPoster() {
+  var gayaItems = [['Profesional & formal','Profesional'],['Ceria & colorful','Ceria'],['Minimalis moden','Minimalis'],['Islamik / tradisional','Islamik'],['STEM / futuristik','STEM/Futuristik']];
+  var dtoolItems = [['Canva','Canva'],['PowerPoint','PPT'],['Photoshop/Illustrator','PS/AI'],['AI Imej (Midjourney)','AI Imej']];
+  var saizItems = [['A3 cetak (potret)','A3 cetak'],['A4 edaran','A4 edaran'],['Instagram post (1080x1080)','Instagram'],['Story / banner menegak','Story/Banner'],['Banner spanduk mendatar','Banner mendatar']];
+
+  var h = '<div class="ft">🖼️ Poster &amp; Grafik Program</div>';
+  h += '<div class="fd">Semakin banyak butiran program yang diberi, semakin lengkap kandungan poster yang dihasilkan.</div>';
+  h += '<div class="fg-2">';
+  h += '<div class="fg"><label>Tajuk Program / Poster <span class="req">★</span></label><input id="f_topik" placeholder="cth: Hari Sukan Tahunan 2025, Kem STEM Inovasi..."></div>';
+  h += '<div class="fg"><label>Anjuran</label><input id="f_subj" placeholder="cth: SMK Dato Harun, Panitia Sains..."></div>';
+  h += '</div>';
+  h += '<div class="fg"><label>Butiran Penting Program (tarikh, masa, tempat, tema, slogan, kenalan) <span class="req">★</span></label>';
+  h += '<textarea id="f_extra" placeholder="cth: Tarikh: 15 Ogos 2025 | Masa: 8 pagi - 5 petang | Tempat: Dewan Sekolah | Tema: Inovasi Tanpa Sempadan | Pertanyaan: Pn. Siti 012-xxx" style="min-height:80px"></textarea></div>';
+  h += '<div class="fg-2">';
+  h += '<div class="fg"><label>Gaya Visual / Mood</label>' + chipsHTML('gaya', gayaItems) + '</div>';
+  h += '<div class="fg"><label>Alat Reka Bentuk</label>' + chipsHTML('dtool', dtoolItems) + '</div>';
+  h += '</div>';
+  h += '<div class="fg"><label>Saiz Diperlukan</label>' + mchipsHTML('saiz', saizItems) + '</div>';
+  h += platHTML();
+  return h;
+}
+
+function formSkrip() {
+  var masaItems = [['1 jam','1 jam'],['2 jam','2 jam'],['Setengah hari','1/2 hari'],['Sehari','Sehari']];
+  var nadaItems = [['Rasmi','Rasmi'],['Separuh rasmi','Separuh rasmi'],['Santai','Santai'],['Keagamaan','Keagamaan']];
+  var kompItems = [['Skrip MC penuh','Skrip MC'],['Ucapan Pengetua','Ucapan Pengetua'],['Ucapan Pengerusi AJK','Ucapan Pengerusi'],['Doa pembukaan & penutup','Doa'],['Skrip penyampaian hadiah','Penyampaian hadiah'],['Ikrar pelajar','Ikrar']];
+
+  var h = '<div class="ft">🎙️ Skrip Pengacara &amp; Teks Majlis</div>';
+  h += '<div class="fd">Nyatakan butiran majlis dan komponen skrip yang diperlukan.</div>';
+  h += '<div class="fg-2">';
+  h += '<div class="fg"><label>Nama Majlis / Program <span class="req">★</span></label><input id="f_topik" placeholder="cth: Majlis Anugerah Cemerlang, Hari Guru, Kem Motivasi..."></div>';
+  h += '<div class="fg"><label>Sekolah / Penganjur</label><input id="f_subj" placeholder="cth: SMK Bukit Bintang, Panitia BM..."></div>';
+  h += '</div>';
+  h += '<div class="fg-3">';
+  h += '<div class="fg"><label>Peringkat</label>' + levelSelect() + '</div>';
+  h += '<div class="fg"><label>Masa Majlis <span class="req">★</span></label>' + chipsHTML('masa_majlis', masaItems, 1) + '</div>';
+  h += '<div class="fg"><label>Nada Majlis</label>' + chipsHTML('nada', nadaItems) + '</div>';
+  h += '</div>';
+  h += '<div class="fg"><label>Komponen Skrip Yang Diperlukan</label>' + mchipsHTML('komp', kompItems) + '</div>';
+  h += '<div class="fg"><label>Tetamu Kehormat &amp; Maklumat Lain</label><textarea id="f_extra" placeholder="cth: YB Ahli Parlimen hadir, 300 peserta, ada persembahan nasyid, penyampaian hadiah 50 pelajar..." style="min-height:60px"></textarea></div>';
+  h += platHTML();
+  return h;
+}
+
+function formSurat() {
+  var penerimaItems = [['Ibu bapa / Penjaga','Ibu bapa'],['Pengetua / GPK','Pengetua'],['PPD / JPN','PPD/JPN'],['Guru-guru','Guru-guru'],['Pihak luar / Syarikat','Pihak luar']];
+  var jsuratItems = [['Pemberitahuan','Pemberitahuan'],['Permohonan kelulusan','Permohonan'],['Jemputan','Jemputan'],['Peringatan','Peringatan'],['Penghargaan','Penghargaan']];
+  var inclItems = [['Slip maklum balas ibu bapa','Slip balas'],['Borang kebenaran','Borang kebenaran'],['Versi mesej WhatsApp','Versi WhatsApp'],['Versi dalam Bahasa Inggeris','Versi BI']];
+
+  var h = '<div class="ft">✉️ Surat Rasmi &amp; Edaran</div>';
+  h += '<div class="fd">Isi semua butiran spesifik supaya kandungan surat lengkap dan sedia guna.</div>';
+  h += '<div class="fg-2">';
+  h += '<div class="fg"><label>Perkara Surat <span class="req">★</span></label><input id="f_topik" placeholder="cth: Pemberitahuan Hari Sukan, Bayaran Yuran, Kebenaran Lawatan..."></div>';
+  h += '<div class="fg"><label>Daripada (Penghantar)</label><input id="f_subj" placeholder="cth: Guru Fizik T5, Panitia BM, HEM..."></div>';
+  h += '</div>';
+  h += '<div class="fg-2">';
+  h += '<div class="fg"><label>Kepada</label>' + chipsHTML('penerima', penerimaItems) + '</div>';
+  h += '<div class="fg"><label>Jenis Surat</label>' + chipsHTML('jsurat', jsuratItems) + '</div>';
+  h += '</div>';
+  h += '<div class="fg"><label>Semua Butiran Spesifik (tarikh, masa, tempat, bayaran, tarikh akhir, barang dibawa) <span class="req">★</span></label>';
+  h += '<textarea id="f_extra" placeholder="cth: Tarikh: 20 Ogos | Masa: 8 pagi | Tempat: Padang Sekolah | Bayaran: RM10 | Tarikh akhir: 15 Ogos | Bawa: baju sukan, air | Pertanyaan: Pn. Rina 012-xxx..." style="min-height:80px"></textarea></div>';
+  h += '<div class="fg"><label>Sertakan Bersama Surat</label>' + mchipsHTML('surat_incl', inclItems) + '</div>';
+  h += platHTML();
+  return h;
+}
+
+function formAnalisis() {
+  var janalisisItems = [['Keputusan keseluruhan','Keputusan keseluruhan'],['Analisis item / soalan','Analisis item'],['Perbandingan tahun lepas','Banding tahun lepas'],['Kumpulan cemerlang/lemah','Kumpulan murid'],['Topik / konstruk lemah','Topik lemah']];
+  var outAnItems = [['Pelan tindakan (action plan)','Pelan tindakan'],['Laporan mesyuarat panitia','Laporan panitia'],['Laporan PPD / JPN','Laporan PPD'],['Template Excel / Sheets','Template Excel'],['Cadangan intervensi murid lemah','Cadangan intervensi']];
+
+  var h = '<div class="ft">📊 Analisis Prestasi Pelajar</div>';
+  h += '<div class="fd">Nyatakan peperiksaan dan output analisis yang anda perlukan secara spesifik.</div>';
+  h += baseCore('cth: Peperiksaan Pertengahan Tahun, Ujian Bulanan Mac...', 'Nama Peperiksaan / Ujian');
+  h += '<div class="fg"><label>Analisis Yang Diperlukan</label>' + mchipsHTML('janalisis', janalisisItems) + '</div>';
+  h += '<div class="fg"><label>Output Yang Diperlukan</label>' + mchipsHTML('out_an', outAnItems) + '</div>';
+  h += '<div class="fg"><label>Konteks Tambahan</label><textarea id="f_extra" placeholder="cth: 3 kelas — T3A, T3B, T3C. Subjek dinilai dalam PT3. Topik paling lemah: algebra dan geometri. Peratus lulus tahun lepas: 68%..." style="min-height:60px"></textarea></div>';
+  h += platHTML();
+  return h;
+}
+
+function formRubrik() {
+  var jrubrikItems = [['Rubrik analitikal (jadual)','Rubrik analitikal'],['Skema jawapan esei','Skema esei'],['Senarai semak guru','Senarai semak guru'],['Penilaian kendiri murid','Penilaian kendiri'],['Penilaian rakan sebaya','Penilaian rakan sebaya']];
+  var kriteriaItems = [['Isi kandungan / Fakta','Isi kandungan'],['Bahasa / Penulisan','Bahasa'],['Organisasi / Struktur','Organisasi'],['Kreativiti','Kreativiti'],['Pembentangan / Komunikasi','Komunikasi'],['Kerjasama kumpulan','Kerjasama']];
+
+  var h = '<div class="ft">⚖️ Rubrik &amp; Instrumen Penilaian</div>';
+  h += '<div class="fd">Nyatakan dengan tepat apa yang dinilai dan instrumen penilaian yang diperlukan.</div>';
+  h += baseCore('cth: Pembentangan Kumpulan, Penulisan Esei, Eksperimen Sains...', 'Tugasan / Perkara Yang Dinilai');
+  h += '<div class="fg"><label>Jenis Rubrik / Instrumen Diperlukan</label>' + mchipsHTML('jrubrik', jrubrikItems) + '</div>';
+  h += '<div class="fg-2">';
+  h += '<div class="fg"><label>Kriteria Penilaian Utama</label>' + mchipsHTML('kriteria', kriteriaItems) + '</div>';
+  h += '<div class="fg"><label>Markah &amp; Skala</label><input id="f_markah" placeholder="cth: 20 markah, skala 1-4, Band 1-6"><div class="fhint">Contoh: 20 markah, 1-6 Band, peratus</div></div>';
+  h += '</div>';
+  h += '<div class="fg"><label>Catatan Tambahan</label><textarea id="f_extra" placeholder="cth: Kumpulan 5 orang, 5 minit per kumpulan, dinilai guru dan rakan sebaya, bahasa mesti mudah difahami murid..." style="min-height:55px"></textarea></div>';
+  h += platHTML();
+  return h;
+}
+
+function formAktiviti() {
+  var jaktItems = [['Ice-breaker / pembuka','Ice-breaker'],['Aktiviti kumpulan PAK-21','Kumpulan PAK-21'],['Kuiz / pertandingan','Kuiz/Pertandingan'],['Permainan kad / papan','Permainan kad/papan'],['Aktiviti digital (Quizziz dll)','Aktiviti digital'],['Projek PBL','PBL']];
+  var kekItems = [['Tanpa internet','Tanpa internet'],['Tanpa peranti / komputer','Tanpa peranti'],['Kelas besar (35+ murid)','Kelas besar 35+'],['Masa terhad (15 minit)','Masa terhad'],['Kelas lemah (perlu mudah)','Kelas lemah']];
+
+  var h = '<div class="ft">🎮 Aktiviti Pembelajaran &amp; Permainan</div>';
+  h += '<div class="fd">Nyatakan topik dan situasi kelas anda — prompt akan disesuaikan dengan keadaan sebenar.</div>';
+  h += baseCore('cth: Sistem Suria, Kata Adjektif, Peristiwa Kemerdekaan...');
+  h += '<div class="fg"><label>Jenis Aktiviti Yang Diperlukan</label>' + mchipsHTML('jakt', jaktItems) + '</div>';
+  h += '<div class="fg"><label>Kekangan / Situasi Kelas</label>' + mchipsHTML('kekangan', kekItems) + '</div>';
+  h += '<div class="fg"><label>Catatan Khas / Permintaan Tambahan</label><textarea id="f_extra" placeholder="cth: Mesti ada unsur pertandingan, kaitkan dengan tema Merdeka, pemenang dapat ganjaran token, sesuai lelaki dan perempuan..." style="min-height:60px"></textarea></div>';
+  h += platHTML();
+  return h;
+}
+
+// ── BUILD FORM ─────────────────────────────────────────────────────────────
+var FORM_FNS = {rph:formRPH, soalan:formSoalan, bahan:formBahan, kertas:formKertas, poster:formPoster, skrip:formSkrip, surat:formSurat, analisis:formAnalisis, rubrik:formRubrik, aktiviti:formAktiviti};
+
+function buildForm(t) {
+  var df = document.getElementById('dform');
+  df.innerHTML = FORM_FNS[t] ? FORM_FNS[t]() : '';
+  df.style.display = 'block';
+  var btn = document.getElementById('genbtn');
+  btn.style.display = 'flex';
+}
+
+// ── GENERATE ───────────────────────────────────────────────────────────────
+function generate() {
+  var subj  = gv('f_subj');
+  var topik = gv('f_topik');
+  var level = gv('f_level') || 'Sekolah Menengah';
+  var year  = gv('f_year')  || 'Tingkatan 3';
+  var bil   = gv('f_bil');
+  var extra = gv('f_extra');
+  var plat  = gcv('plat')   || 'ChatGPT';
+  var olang = gcv('olang')  || 'Bahasa Melayu';
+
+  var bilNote  = bil   ? 'Bilangan murid: ' + bil + '.' : '';
+  var xBlock   = extra ? '\n\nSpesifikasi khas / Maklumat tambahan:\n' + extra : '';
+  var langNote = '\n\nHasilkan output dalam: ' + olang + '.';
+
+  var p = '', tips = [];
+
+  if (task === 'rph') {
+    var masa      = gcv('masa')     || '60 minit';
+    var tujuan    = gcv('tujuan')   || 'Pengenalan topik baru';
+    var aras      = gcv('aras')     || 'Bercampur';
+    var elemen    = gmv('elemen');
+    var elStr     = elemen.length ? elemen.join(', ') : 'KBAT, PAK-21';
+    var hasDigital  = elemen.indexOf('TMK/Digital') !== -1;
+    var hasTerbeza  = elemen.indexOf('P. Terbeza') !== -1;
+    var hasKBAT     = elemen.indexOf('KBAT') !== -1;
+    var masa30 = masa === '30 minit';
+
+    p  = 'Bertindak sebagai Guru Pakar ' + (subj||'[Mata Pelajaran]') + ' yang mahir dalam kurikulum KSSR/KSSM dan pedagogi terkini.\n\n';
+    p += 'BINA RPH INI BERDASARKAN MAKLUMAT BERIKUT:\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    p += 'Mata Pelajaran : ' + (subj||'[Mata Pelajaran]') + '\n';
+    p += 'Tajuk / Topik  : ' + (topik||'[Topik]') + '\n';
+    p += 'Peringkat      : ' + level + ', ' + year + '\n';
+    if (bilNote) p += bilNote + '\n';
+    p += 'Masa PdP       : ' + masa + '\n';
+    p += 'Tujuan PdP     : ' + tujuan + '\n';
+    p += 'Aras murid     : ' + aras + '\n';
+    p += 'Elemen khas    : ' + elStr + '\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+    p += 'STRUKTUR RPH (format rasmi KPM):\n\n';
+    p += '① MAKLUMAT KELAS\n';
+    p += '   Subjek | ' + year + ' | ' + (bil||'[ ]') + ' murid | Tarikh: ___ | Masa: ' + masa + ' | Bilik: ___\n\n';
+    p += '② STANDARD KURIKULUM (DSKP ' + (subj||'') + ' ' + year + ')\n';
+    p += '   Standard Kandungan (SK): [pilih yang relevan dengan "' + (topik||'topik ini') + '"]\n';
+    p += '   Standard Pembelajaran (SP): [pilih yang berkaitan]\n\n';
+    p += '③ OBJEKTIF PEMBELAJARAN — tujuan hari ini: ' + tujuan + '\n';
+    p += '   Pada akhir PdP, murid dapat:\n';
+    p += '   1. [Objektif aras pengetahuan — sesuai untuk tujuan ' + tujuan + ']\n';
+    p += '   2. [Objektif aras kefahaman]\n';
+    p += '   3. [Objektif aras aplikasi' + (hasKBAT ? ' / analisis' : '') + ']\n';
+    p += '   ★ Semua objektif MESTI boleh diukur dan sesuai dengan masa ' + masa + '\n\n';
+    p += '④ BBM / SUMBER PENGAJARAN\n';
+    if (hasDigital) {
+      p += '   Fizikal: buku teks, kad aktiviti, [lain-lain]\n';
+      p += '   Digital: [cadangkan platform/app SPESIFIK yang sesuai untuk topik "' + (topik||'ini') + '" — bukan sekadar "Google Classroom" secara umum]\n\n';
+    } else {
+      p += '   Fizikal: buku teks, carta, kad aktiviti, [lain-lain]\n\n';
+    }
+    p += '⑤ LANGKAH PdP — ' + masa + '\n\n';
+    p += '   ┌─ SET INDUKSI (5–8 min) ──────────────────────────────\n';
+    p += '   │ [Reka set induksi MENARIK yang KAIT LANGSUNG dengan "' + (topik||'topik ini') + '"]\n';
+    p += '   │ Situasi dunia sebenar / soalan pencetus: [huraikan]\n';
+    p += '   │ Soalan guru kepada murid:\n';
+    p += '   │ Respons murid yang dijangkakan:\n';
+    p += '   └──────────────────────────────────────────────────────\n\n';
+    p += '   ┌─ LANGKAH 1 — Penerokaan (' + (masa30 ? '8' : '12') + ' min) ────────────────────\n';
+    p += '   │ [Aktiviti penerokaan "' + (topik||'topik') + '" — sesuai untuk murid ' + aras + ']\n';
+    p += '   │ Aktiviti guru:\n';
+    p += '   │ Aktiviti murid:\n';
+    if (hasKBAT) p += '   │ Soalan KBAT yang digunakan: [bukan sekadar "apa" — perlu "mengapa/bagaimana/nilaikan"]\n';
+    p += '   └──────────────────────────────────────────────────────\n\n';
+    p += '   ┌─ LANGKAH 2 — Penstrukturan (' + (masa30 ? '8' : '12') + ' min) ─────────────────\n';
+    p += '   │ [Penerangan dan pembinaan pemahaman "' + (topik||'topik') + '"]\n';
+    if (hasTerbeza) {
+      p += '   │ ★ BEZA 3 ARAS:\n';
+      p += '   │   Asas: [aktiviti untuk murid lemah — ada scaffolding]\n';
+      p += '   │   Sederhana: [aktiviti standard]\n';
+      p += '   │   Pengayaan: [aktiviti mencabar untuk murid cemerlang]\n';
+    } else {
+      p += '   │ Demonstrasi / contoh:\n';
+      p += '   │ Aktiviti murid:\n';
+    }
+    p += '   └──────────────────────────────────────────────────────\n\n';
+    p += '   ┌─ LANGKAH 3 — Aplikasi / Latihan (' + (masa30 ? '7' : '10') + ' min) ───────────\n';
+    if (aras.indexOf('lemah') !== -1) {
+      p += '   │ [Latihan berstruktur dengan scaffolding jelas — sesuai kelas lemah]\n';
+    } else {
+      p += '   │ [Latihan berasaskan masalah / kontekstual]\n';
+    }
+    if (hasDigital) p += '   │ Platform digital: [huraikan aktiviti spesifik]\n';
+    p += '   └──────────────────────────────────────────────────────\n\n';
+    p += '   ┌─ PENUTUP (5 min) ────────────────────────────────────\n';
+    p += '   │ [Rumusan OLEH MURID — bukan guru yang rumuskan]\n';
+    p += '   │ Soalan refleksi: "Apa yang kamu pelajari hari ini tentang ' + (topik||'topik ini') + '?"\n';
+    p += '   │ Nilai murni yang diterapkan:\n';
+    p += '   │ Preview topik seterusnya:\n';
+    p += '   └──────────────────────────────────────────────────────\n\n';
+    p += '⑥ PENILAIAN FORMATIF (semasa PdP)\n';
+    p += '   Kaedah: [teknik SPESIFIK — bukan sekadar "pemerhatian"]\n';
+    if (hasKBAT) p += '   Soalan KBAT semasa PdP: [beri 2 contoh soalan aras tinggi]\n';
+    p += '\n⑦ ELEMEN ' + elStr.toUpperCase() + '\n';
+    for (var i = 0; i < elemen.length; i++) {
+      p += '   ' + elemen[i] + ': [huraikan bagaimana elemen ini diintegrasikan secara SPESIFIK dalam PdP "' + (topik||'ini') + '"]\n';
+    }
+    p += xBlock + langNote;
+    p += '\n\n★ RPH ini untuk murid ' + aras + ' dalam masa ' + masa + '. Pastikan setiap langkah PRAKTIKAL dan boleh dilaksanakan.';
+    tips = ['+ Lembaran kerja murid', '+ Soalan set induksi alternatif', '+ Versi pemulihan / kelas lemah', '+ Cadangan aktiviti digital spesifik', '+ Refleksi guru pasca PdP'];
+  }
+
+  else if (task === 'soalan') {
+    var fmt_e  = gcv('fmt_exam') || 'KSSM';
+    var jsoalan = gcv('jsoalan') || 'Kertas penuh';
+    var markah = gv('f_markah');
+    var incl   = gmv('incl_soalan');
+
+    p  = 'Bertindak sebagai Pakar Pembina Soalan ' + (subj||'[Mata Pelajaran]') + ' berpengalaman dalam sistem pentaksiran KPM Malaysia.\n\n';
+    p += 'BINA SET SOALAN INI:\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    p += 'Mata Pelajaran : ' + (subj||'[Mata Pelajaran]') + '\n';
+    p += 'Topik / Bab    : ' + (topik||'[Topik]') + '\n';
+    p += 'Peringkat      : ' + level + ', ' + year + '\n';
+    if (bilNote) p += bilNote + '\n';
+    p += 'Format         : ' + fmt_e + '\n';
+    p += 'Jenis soalan   : ' + jsoalan + '\n';
+    if (markah) p += 'Markah & Masa  : ' + markah + '\n';
+    p += 'Sertakan       : ' + (incl.length ? incl.join(', ') : 'Skema jawapan') + '\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+
+    if (jsoalan.indexOf('Kertas penuh') !== -1) {
+      p += 'BAHAGIAN A — OBJEKTIF / ANEKA PILIHAN (15 soalan, 15 markah)\n';
+      p += '• Taburan: Pengetahuan (4) | Kefahaman (5) | Aplikasi (4) | KBAT (2)\n';
+      p += '• 4 pilihan setiap soalan (A, B, C, D) | Kunci jawapan disertakan\n';
+      p += '• SEMUA soalan mesti berkaitan "' + (topik||'topik ini') + '" (' + year + ', ' + level + ')\n';
+      if (incl.indexOf('Arahan calon') !== -1) p += '• Sertakan arahan kepada calon untuk bahagian ini\n';
+      p += '\nBAHAGIAN B — SOALAN STRUKTUR (4 soalan, 24 markah)\n';
+      p += '• Setiap soalan: 5–7 markah | Aras: Aplikasi + Analisis\n';
+      p += '• WAJIB: setiap soalan ada konteks / situasi dunia sebenar\n';
+      p += '• Skema jawapan: [poin + huraian + markah setiap poin]\n';
+      p += '\nBAHAGIAN C — ESEI / KBAT (2 soalan, pilih 1)\n';
+      p += '• Setiap soalan: ' + (markah ? Math.round(parseInt(markah)*0.33)+'–'+Math.round(parseInt(markah)*0.4)+' markah' : '15–20 markah') + '\n';
+      p += '• Aras Bloom: Analisis | Penilaian | Sintesis\n';
+      p += '• MESTI berasaskan situasi / kes nyata berkaitan "' + (topik||'topik ini') + '"\n';
+      p += '• TIDAK BOLEH dijawab melalui hafalan\n';
+      p += '• Skema jawapan: IP → H → HL → Contoh → Kesimpulan [dengan peruntukan markah]\n';
+    } else if (jsoalan.indexOf('Objektif') !== -1) {
+      p += 'SOALAN OBJEKTIF ANEKA PILIHAN — 20 soalan\n';
+      p += '• Taburan: Pengetahuan (5) | Kefahaman (6) | Aplikasi (6) | KBAT (3)\n';
+      p += '• 4 pilihan (A, B, C, D) | Kunci jawapan disertakan\n';
+      p += '• Format ' + fmt_e + ' | Semua soalan berkaitan "' + (topik||'topik') + '"\n';
+    } else if (jsoalan.indexOf('Subjektif') !== -1) {
+      p += 'SOALAN STRUKTUR & SUBJEKTIF\n';
+      p += '• 6 soalan struktur (3–6 markah setiap soalan)\n';
+      p += '• 2 soalan esei (10–15 markah setiap soalan)\n';
+      p += '• Aras: Kefahaman → Aplikasi → Analisis | Skema jawapan penuh\n';
+    } else if (jsoalan.indexOf('Esei KBAT') !== -1) {
+      p += 'SOALAN ESEI KBAT — 3 soalan (pilih 2)\n';
+      p += '• Setiap soalan: ' + (markah||'15–20') + ' markah\n';
+      p += '• Aras Bloom: Analisis | Penilaian | Sintesis\n';
+      p += '• Berasaskan situasi / kes sebenar | Skema jawapan: IP → H → HL → Contoh → Kesimpulan\n';
+    } else {
+      p += 'KUIZ RINGKAS — 10 soalan\n';
+      p += '• 5 soalan objektif (A/B/C/D) + 3 isi tempat kosong + 2 soalan pendek\n';
+      p += '• Sesuai untuk Quizziz/Kahoot/kuiz lisan | Kunci jawapan disertakan\n';
+    }
+
+    p += '\nKEPERLUAN KUALITI:\n';
+    p += '• Semua soalan MESTI berkaitan topik: ' + (topik||'[topik]') + ' (' + level + ', ' + year + ')\n';
+    p += '• Soalan mesti sesuai format ' + fmt_e + ' | Bahasa tepat dan jelas\n';
+    if (incl.indexOf('Skema jawapan') !== -1) p += '• ★ SKEMA JAWAPAN PENUH untuk semua soalan dengan peruntukan markah jelas\n';
+    if (incl.indexOf('JSS/Blueprint') !== -1) p += '• ★ JADUAL SPESIFIKASI UJIAN (JSS): Topik | Aras Bloom | Bil Soalan | Markah | %\n';
+    if (incl.indexOf('Rubrik esei') !== -1) p += '• ★ Rubrik pemarkahan esei yang jelas dan boleh digunakan terus\n';
+    p += xBlock + langNote;
+    tips = ['+ Soalan berasaskan diagram/rajah', '+ Versi lebih mudah (aras asas)', '+ Soalan lisan / oral assessment', '+ Format PT3/SPM sebenar', '+ Jadual spesifikasi ujian (JSS)'];
+  }
+
+  else if (task === 'bahan') {
+    var jbahan  = gmv('jbahan');
+    var sasaran = gcv('sasaran') || 'Semua aras';
+    var medium  = gcv('medium') || 'Cetak';
+
+    p  = 'Bertindak sebagai pakar reka bentuk instruksional dan kurikulum ' + (subj||'[Mata Pelajaran]') + ' untuk sekolah Malaysia.\n\n';
+    p += 'BINA BAHAN PdP INI:\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    p += 'Mata Pelajaran : ' + (subj||'[Mata Pelajaran]') + '\n';
+    p += 'Topik          : ' + (topik||'[Topik]') + '\n';
+    p += 'Peringkat      : ' + level + ', ' + year + '\n';
+    if (bilNote) p += bilNote + '\n';
+    p += 'Sasaran murid  : ' + sasaran + '\n';
+    p += 'Format         : ' + medium + '\n';
+    p += 'Jenis bahan    : ' + (jbahan.length ? jbahan.join(', ') : 'Nota + Lembaran kerja') + '\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+
+    if (jbahan.indexOf('Nota ringkas') !== -1 || jbahan.length === 0) {
+      p += '① NOTA RINGKAS — "' + (topik||'[topik]') + '"\n';
+      p += '• Konsep utama dalam bahasa sesuai untuk murid ' + year + ' ' + level + '\n';
+      p += '• Struktur: Konsep Utama → Sub-topik → Poin penting (bukan prosa panjang)\n';
+      p += '• Kata kunci / istilah teknikal: [senarai + definisi ringkas dalam konteks ' + (subj||'subjek ini') + ']\n';
+      p += '• Contoh kehidupan sebenar yang relevan dengan murid ' + year + '\n';
+      p += '• Format ' + medium + ': ' + (medium === 'Digital' ? 'satu konsep satu slaid, gunakan warna dan ikon' : 'satu muka surat A4, banyak ruang putih, mudah dibaca') + '\n\n';
+    }
+    if (jbahan.indexOf('LK 3 aras') !== -1 || jbahan.length === 0) {
+      p += '② LEMBARAN KERJA TERBEZA — "' + (topik||'[topik]') + '"\n\n';
+      p += '🟢 ARAS ASAS — ' + (sasaran === 'Murid lemah' ? 'FOKUS UTAMA' : 'Murid yang memerlukan sokongan') + '\n';
+      p += '   • 5 soalan: isi tempat kosong / padankan / betul-salah\n';
+      p += '   • Ada panduan / hint untuk setiap soalan\n';
+      p += '   • Gambar / rajah disertakan untuk bantu pemahaman visual\n\n';
+      p += '🟡 ARAS SEDERHANA — Murid biasa\n';
+      p += '   • 5 soalan campuran (pendek + struktur)\n';
+      p += '   • Latihan aplikasi konsep "' + (topik||'[topik]') + '" dalam konteks sebenar\n\n';
+      p += '🔴 ARAS PENGAYAAN — ' + (sasaran === 'Murid cemerlang' ? 'FOKUS UTAMA' : 'Murid cemerlang') + '\n';
+      p += '   • 5 soalan KBAT — analisis, penilaian, atau cipta\n';
+      p += '   • 1 soalan open-ended / projek mini berkaitan "' + (topik||'[topik]') + '"\n\n';
+    }
+    if (jbahan.indexOf('Latih tubi') !== -1) {
+      p += '③ SOALAN LATIH TUBI — "' + (topik||'[topik]') + '"\n';
+      p += '   • 20 soalan tersusun dari mudah ke susah\n';
+      p += '   • Sesuai untuk ulangkaji sebelum peperiksaan ' + year + '\n';
+      p += '   • Kunci jawapan disertakan\n\n';
+    }
+    if (jbahan.indexOf('Kad/Flashcard') !== -1) {
+      p += '④ KAD AKTIVITI / FLASHCARD — "' + (topik||'[topik]') + '"\n';
+      p += '   • Minimum 12 kad: depan = soalan/konsep, belakang = jawapan/huraian\n';
+      p += '   • Merangkumi semua sub-topik "' + (topik||'[topik]') + '"\n\n';
+    }
+    if (jbahan.indexOf('Infografik') !== -1) {
+      p += '⑤ INFOGRAFIK RINGKAS — "' + (topik||'[topik]') + '"\n';
+      p += '   • Satu muka surat A4 / satu slaid\n';
+      p += '   • Visual hierarchy: tajuk besar → poin utama → sub-poin\n';
+      p += '   • Gunakan ikon, warna dan rajah — bukan blok teks panjang\n\n';
+    }
+    p += '★ SENARAI SEMAK KEMAJUAN MURID\n';
+    p += '☐ Saya faham konsep utama "' + (topik||'[topik]') + '"\n';
+    p += '☐ Saya boleh buat contoh sendiri\n';
+    p += '☐ Saya boleh terangkan kepada rakan';
+    p += xBlock + langNote;
+    tips = ['+ Soalan homework tambahan', '+ Nota ibu bapa (panduan belajar di rumah)', '+ Versi Canva/Google Slides', '+ Soalan kuiz cepat 5 minit', '+ Senarai kosa kata topik'];
+  }
+
+  else if (task === 'kertas') {
+    var jkertas = gcv('jkertas') || 'Sehari';
+    var sumber  = gcv('sumber')  || 'SUWA';
+    var bajet   = gv('f_bajet');
+    var inclKK  = gmv('kk_incl');
+
+    p  = 'Bertindak sebagai guru Malaysia berpengalaman dalam pengurusan program dan pentadbiran sekolah.\n\n';
+    p += 'BINA KERTAS KERJA RASMI INI:\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    p += 'Nama Program   : ' + (topik||'[Nama Program]') + '\n';
+    p += 'Anjuran        : ' + (subj||'[Panel/Panitia]') + ' (' + level + ')\n';
+    p += 'Jenis          : ' + jkertas + '\n';
+    p += 'Peserta        : ' + (bil||'[Bilangan]') + '\n';
+    p += 'Anggaran bajet : ' + (bajet||'[RM]') + '\n';
+    p += 'Sumber         : ' + sumber + '\n';
+    p += 'Sertakan       : ' + (inclKK.length ? inclKK.join(', ') : 'Format standard') + '\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+    p += 'KERTAS KERJA — FORMAT RASMI KPM:\n\n';
+    p += '1.0 PENDAHULUAN\n    [Tulis latar belakang dan rasional program "' + (topik||'[program]') + '" — kenapa program ' + jkertas + ' ini diperlukan, keperluan semasa pelajar yang ditangani]\n\n';
+    p += '2.0 OBJEKTIF\n    [Tulis 5 objektif SMART yang KHUSUS kepada program "' + (topik||'[program]') + '" — setiap objektif mesti boleh diukur]\n    2.1 Pada akhir program, peserta dapat...\n    2.2 ...\n    2.3 ...\n    2.4 ...\n    2.5 ...\n\n';
+    p += '3.0 MAKLUMAT PROGRAM\n';
+    p += '    | Perkara          | Butiran                              |\n';
+    p += '    |------------------|--------------------------------------|\n';
+    p += '    | Nama Program     | ' + (topik||'[Nama]') + '                            |\n';
+    p += '    | Jenis            | ' + jkertas + '                              |\n';
+    p += '    | Tarikh           | [TARIKH]                            |\n';
+    p += '    | Masa             | [MULA] - [TAMAT]                    |\n';
+    p += '    | Tempat / Lokasi  | [TEMPAT]                            |\n';
+    p += '    | Penganjur        | ' + (subj||'[Panel]') + ', [Nama Sekolah]            |\n\n';
+    p += '4.0 KUMPULAN SASAR\n    Bilangan peserta: ' + (bil||'[___]') + ' | Peringkat: ' + level + '\n\n';
+    p += '5.0 ATURCARA PROGRAM\n';
+    if (inclKK.indexOf('Aturcara') !== -1) {
+      p += '    [Bina aturcara lengkap REALISTIK untuk program ' + jkertas + ' "' + (topik||'ini') + '"]\n';
+      p += '    | Masa  | Aktiviti                    | Tanggungjawab        |\n';
+      p += '    |-------|-----------------------------+----------------------|\n';
+      p += '    |       | [isi aktiviti spesifik]     |                      |\n\n';
+    } else {
+      p += '    [Bina jadual aturcara ringkas]\n\n';
+    }
+    p += '6.0 KEPERLUAN KEWANGAN\n';
+    if (inclKK.indexOf('Jadual bajet') !== -1) {
+      p += '    [Bina jadual bajet TERPERINCI dan REALISTIK untuk ' + (bil||'[ ]') + ' peserta]\n';
+      p += '    | Bil | Perkara / Item   | Kuantiti | Harga Unit (RM) | Jumlah (RM) |\n';
+      p += '    |-----|------------------|----------|-----------------+-------------|\n';
+      p += '    |     | [min 8 item]     |          |                 |             |\n';
+      p += '    |     | JUMLAH           |          |                 | ' + (bajet||'RM ___') + ' |\n';
+    } else {
+      p += '    Anggaran bajet: ' + (bajet||'[RM]') + ' | Sumber: ' + sumber + '\n';
+    }
+    p += '\n7.0 JAWATANKUASA PELAKSANA\n';
+    if (inclKK.indexOf('Carta AJK') !== -1) {
+      p += '    Pengerusi | Setiausaha | Bendahari | AJK Logistik | AJK Publisiti | AJK Teknikal\n';
+      p += '    [Bina carta tanggungjawab lengkap — setiap portfolio ada tugas yang jelas]\n\n';
+    } else {
+      p += '    [Senaraikan AJK dan portfolio masing-masing]\n\n';
+    }
+    p += '8.0 PENILAIAN & PELAPORAN\n    Petunjuk kejayaan | Kaedah penilaian | Tarikh laporan\n\n';
+    p += '9.0 PENUTUP\n    [Harapan dan permohonan kelulusan]\n';
+    if (inclKK.indexOf('Borang penilaian') !== -1) {
+      p += '\nLAMPIRAN A: BORANG PENILAIAN PROGRAM "' + (topik||'[PROGRAM]').toUpperCase() + '"\n[Bina borang penilaian: skala 1-5 + ruangan komen terbuka]\n';
+    }
+    if (inclKK.indexOf('Template laporan') !== -1) {
+      p += '\nLAMPIRAN B: TEMPLATE LAPORAN PASCA PROGRAM\n[Templat laporan selepas program selesai — ringkasan, pencapaian objektif, cadangan]\n';
+    }
+    p += xBlock + langNote;
+    tips = ['+ Surat permohonan kelulusan Pengetua', '+ Minit mesyuarat AJK pertama', '+ Carta Gantt perancangan', '+ Surat jemputan tetamu kehormat', '+ Laporan pasca program (format penuh)'];
+  }
+
+  else if (task === 'poster') {
+    var gaya  = gcv('gaya')  || 'Profesional';
+    var dtool = gcv('dtool') || 'Canva';
+    var saiz  = gmv('saiz');
+
+    p  = 'Bertindak sebagai pereka grafik profesional pakar dalam komunikasi visual pendidikan.\n\n';
+    p += 'BINA KANDUNGAN & BRIEF REKA BENTUK POSTER INI:\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    p += 'Tajuk Program  : ' + (topik||'[Nama Program]') + '\n';
+    p += 'Penganjur      : ' + (subj||'[Sekolah/Panel]') + '\n';
+    p += 'Gaya visual    : ' + gaya + '\n';
+    p += 'Platform       : ' + dtool + '\n';
+    p += 'Saiz diperlukan: ' + (saiz.length ? saiz.join(', ') : 'A3 cetak, Instagram post') + '\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+    p += 'BUTIRAN PROGRAM (gunakan maklumat ini dalam poster):\n';
+    p += (extra || '[Masukkan tarikh, masa, tempat, tema, slogan, kenalan]') + '\n\n';
+    p += 'KANDUNGAN POSTER:\n\n';
+    p += '① HEADLINE UTAMA — 3 pilihan\n';
+    p += '   [Cadangkan 3 headline berbeza — menarik, maksimum 7 perkataan, nada ' + gaya + ', berkaitan "' + (topik||'program') + '"]\n';
+    p += '   Pilihan A: [headline terkuat]\n';
+    p += '   Pilihan B: [variasi nada berbeza]\n';
+    p += '   Pilihan C: [lebih ringkas / lebih puitis]\n\n';
+    p += '② TAGLINE / AYAT SOKONGAN\n';
+    p += '   [1 ayat pendek yang memperkuat headline — sesuai gaya ' + gaya + ']\n\n';
+    p += '③ BLOK MAKLUMAT PROGRAM\n';
+    p += '   [Susun semula butiran program di atas dalam format poster yang bersih]\n\n';
+    p += '④ CALL TO ACTION\n';
+    p += '   [Apa yang perlu pembaca buat? — daftar / hadir / bawa barang / scan QR]\n\n';
+    p += '⑤ BRIEF REKA BENTUK — ' + gaya + '\n\n';
+    p += '   Palet Warna:\n';
+    p += '   • Warna utama: [nama + hex code]\n';
+    p += '   • Warna kedua: [nama + hex code]\n';
+    p += '   • Warna aksen: [nama + hex code]\n';
+    p += '   [Jelaskan MENGAPA kombinasi ini sesuai untuk "' + (topik||'program') + '" bergaya "' + gaya + '"]\n\n';
+    p += '   Tipografi:\n';
+    p += '   • Tajuk: [nama font + alasan]\n';
+    p += '   • Badan: [nama font yang serasi]\n';
+    p += '   • Sumber: ' + (dtool === 'Canva' ? 'pilih font tersedia dalam Canva' : 'Google Fonts / Adobe Fonts') + '\n\n';
+    p += '   Elemen Visual:\n';
+    p += '   • Ilustrasi / ikon sesuai untuk tema "' + (topik||'program') + '"\n';
+    p += '   • Komposisi: letakkan RUANG NEGATIF yang cukup untuk headline bertindih\n';
+    if (gaya === 'Islamik / tradisional') p += '   • Elemen khat / geometri Islam / kaligrafi Arab yang sesuai\n';
+    if (gaya.indexOf('STEM') !== -1) p += '   • Elemen saintifik / teknologi / data visual\n';
+    p += '\n⑥ SPESIFIKASI TEKNIKAL\n';
+    if (saiz.indexOf('A3 cetak (potret)') !== -1 || saiz.length === 0) p += '   • A3 Cetak: 297x420mm, 300dpi, CMYK, bleed 3mm\n';
+    if (saiz.indexOf('Instagram post (1080x1080)') !== -1 || saiz.length === 0) p += '   • Instagram Post: 1080x1080px, sRGB\n';
+    if (saiz.indexOf('Story / banner menegak') !== -1) p += '   • Story / Banner Menegak: 1080x1920px\n';
+    if (saiz.indexOf('A4 edaran') !== -1) p += '   • A4 Edaran: 210x297mm, 300dpi\n';
+    if (saiz.indexOf('Banner spanduk mendatar') !== -1) p += '   • Banner Mendatar: 1200x628px\n';
+    if (dtool === 'Canva') {
+      p += '\n⑦ PANDUAN CANVA\n';
+      p += '   • Kata kunci carian template: [cadangkan 3 kata kunci]\n';
+      p += '   • Elemen Canva percuma yang sesuai: [senaraikan]\n';
+      p += '   • Tip susun atur: [panduan menggunakan Canva untuk poster ini]\n';
+    }
+    if (dtool === 'AI Imej (Midjourney)') {
+      p += '\n⑦ PROMPT AI IMEJ (Midjourney / DALL-E 3)\n';
+      p += '   [Tulis prompt bahasa Inggeris dioptimumkan — gaya "' + gaya + '", tema "' + (topik||'program') + '", untuk latar belakang poster pendidikan]\n';
+      p += '   Prompt: "..."\n';
+    }
+    p += langNote;
+    tips = ['+ 3 variasi tema warna alternatif', '+ Caption media sosial', '+ Panduan saiz untuk WhatsApp', '+ Checklist sebelum hantar cetak', '+ Cadangan hashtag program'];
+  }
+
+  else if (task === 'skrip') {
+    var nada    = gcv('nada')       || 'Rasmi';
+    var masa_m  = gcv('masa_majlis')|| '2 jam';
+    var komp    = gmv('komp');
+
+    p  = 'Bertindak sebagai penulis skrip profesional untuk majlis rasmi pendidikan Malaysia.\n\n';
+    p += 'BINA SKRIP MAJLIS INI:\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    p += 'Nama Majlis    : ' + (topik||'[Nama Majlis]') + '\n';
+    p += 'Penganjur      : ' + (subj||'[Sekolah]') + ' (' + level + ')\n';
+    p += 'Masa majlis    : ' + masa_m + '\n';
+    p += 'Nada / suasana : ' + nada + '\n';
+    p += 'Komponen       : ' + (komp.length ? komp.join(', ') : 'Skrip MC, Ucapan, Doa') + '\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    if (extra) p += '\nButiran tambahan:\n' + extra + '\n';
+    p += '\nKONVENSEN PENULISAN:\n[ARAHAN PENTAS dalam kurungan] | PENGACARA: teks dibaca | Anggaran masa setiap slot\n\n';
+
+    if (komp.indexOf('Skrip MC') !== -1 || komp.length === 0) {
+      p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n① SKRIP PENGACARA MAJLIS (MC) — ' + masa_m + '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+      p += 'PEMBUKAAN\n[Arahan pentas]\nPENGACARA: [Ucapan pembukaan ' + nada + ' — salam, aluan, urutan penyebutan tetamu, perkenalkan "' + (topik||'majlis') + '", nyatakan aturcara]\n\u23f1 3–5 minit\n\n';
+      p += 'TRANSISI 1 — ' + (komp.indexOf('Ucapan Pengetua') !== -1 ? 'Ucapan Pengetua / Guru Besar' : 'Slot pertama') + '\nPENGACARA: [Ayat peralihan halus, memuliakan, nada ' + nada + ']\n\n';
+      p += 'TRANSISI 2 — Slot seterusnya\nPENGACARA: [Ayat peralihan — jangan ulang format yang sama]\n\n';
+      p += 'TRANSISI 3 — Slot aktiviti / persembahan\nPENGACARA: [Jemputan yang sopan dan jelas]\n\n';
+      p += 'TRANSISI 4 — Menuju slot penutup\nPENGACARA: [Isyaratkan majlis hampir tamat]\n\n';
+      p += 'PENUTUP RASMI\nPENGACARA: [Ucapan terima kasih mengikut turutan kenamaan, pengumuman terakhir, penyataan majlis tamat]\n\u23f1 3–5 minit\n\n';
+    }
+    if (komp.indexOf('Ucapan Pengetua') !== -1) {
+      p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n② UCAPAN PENGETUA / GURU BESAR — 5–7 minit\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+      p += '[Tulis teks ucapan PENUH — nada ' + nada + ']\nPembukaan | Isi 1: latar belakang "' + (topik||'program') + '" | Isi 2: harapan dan matlamat | Isi 3: penghargaan | Penutup\n\n';
+    }
+    if (komp.indexOf('Doa') !== -1) {
+      p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n③ DOA PEMBUKAAN & PENUTUP\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+      p += 'Doa Pembukaan: [Teks Arab + transliterasi Rumi + terjemahan BM]\n';
+      p += 'Doa Penutup: [Teks Arab + transliterasi Rumi + terjemahan BM]\n\n';
+    }
+    if (komp.indexOf('Ucapan Pengerusi') !== -1) {
+      p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n④ UCAPAN PENGERUSI AJK — 3–4 minit\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n[Laporan ringkas pelaksanaan, terima kasih AJK, nada ' + nada + ']\n\n';
+    }
+    if (komp.indexOf('Penyampaian hadiah') !== -1) {
+      p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n⑤ SKRIP PENYAMPAIAN HADIAH\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n[Skrip lengkap setiap kategori anugerah — cara panggil nama, ulasan ringkas, arahan pentas]\n\n';
+    }
+    if (komp.indexOf('Ikrar') !== -1) {
+      p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n⑥ IKRAR PELAJAR\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n[Teks ikrar sesuai tema "' + (topik||'majlis') + '" — dibaca serentak, bermotivasi, bahasa jelas]\n';
+    }
+    p += langNote;
+    tips = ['+ Versi pendek 45 minit', '+ Skrip dwibahasa BM/BI', '+ Pantun / syair pembuka', '+ Checklist MC sebelum majlis', '+ Skrip pengumuman semasa majlis'];
+  }
+
+  else if (task === 'surat') {
+    var penerima = gcv('penerima') || 'Ibu bapa';
+    var jsurat   = gcv('jsurat')   || 'Pemberitahuan';
+    var inclS    = gmv('surat_incl');
+
+    p  = 'Bertindak sebagai guru Malaysia yang mahir menulis surat rasmi mengikut format dan protokol KPM.\n\n';
+    p += 'BINA SURAT RASMI INI:\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    p += 'Perkara        : ' + (topik||'[Perkara Surat]') + '\n';
+    p += 'Daripada       : ' + (subj||'[Guru/Panel]') + '\n';
+    p += 'Kepada         : ' + penerima + '\n';
+    p += 'Jenis surat    : ' + jsurat + '\n';
+    p += 'Sertakan       : ' + (inclS.length ? inclS.join(', ') : 'Format standard') + '\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+    p += 'BUTIRAN YANG MESTI ADA DALAM SURAT:\n';
+    p += (extra || '[Masukkan tarikh, masa, tempat, syarat, bayaran, tarikh akhir dan semua maklumat penting]') + '\n\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n[KOP SURAT SEKOLAH] | Rujukan Kami: ___/___/___ | Tarikh:\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n';
+    if (penerima === 'Ibu bapa / Penjaga') {
+      p += 'Ibu Bapa / Penjaga Yang Dihormati,\n[Nama Sekolah]\n\n';
+    } else if (penerima === 'Pengetua / GPK') {
+      p += '[Nama Pengetua / GPK]\n[Nama Sekolah]\n\n';
+    } else {
+      p += '[Nama & Jawatan Penerima]\n[Nama Organisasi / Jabatan]\n[Alamat]\n\n';
+    }
+    p += 'Tuan / Puan,\n\n';
+    p += (topik||'[PERKARA SURAT]').toUpperCase() + '\n\n';
+    p += '1.0 PENDAHULUAN\n    [Ayat pembuka ' + jsurat + ' yang sesuai — merujuk perkara di atas]\n\n';
+    p += '2.0 BUTIRAN / MAKLUMAT\n    [Masukkan SEMUA maklumat spesifik dari butiran di atas — susun dalam format jelas dan mudah diikuti oleh ' + penerima + ']\n\n';
+    p += '3.0 TINDAKAN YANG DIPERLUKAN\n    [Apa yang perlu dilakukan oleh ' + penerima + '? Nyatakan DENGAN JELAS — apa, bila, bagaimana. Tarikh akhir mesti tegas]\n\n';
+    p += '4.0 PENUTUP\n    [Ucapan terima kasih dan harapan kerjasama]\n\n';
+    p += 'Sekian, terima kasih.\n\n"BERKHIDMAT UNTUK NEGARA"\n\n';
+    p += 'Yang benar,\n_______________________\n' + (subj||'[Nama Guru]') + '\n[Jawatan] | [Nama Sekolah] | Tarikh:\n';
+    if (inclS.indexOf('Slip balas') !== -1) {
+      p += '\n━━━━ sila potong & kembalikan sebelum [TARIKH] ━━━━\nSLIP MAKLUM BALAS — ' + (topik||'[PROGRAM]').toUpperCase() + '\nNama Murid: _______________ Kelas: _______ Tarikh: _______\n[Tambah soalan / pilihan spesifik berkaitan ' + (topik||'program') + ']\nTandatangan Ibu Bapa / Penjaga: _______ Tarikh: _______\n';
+    }
+    if (inclS.indexOf('Borang kebenaran') !== -1) {
+      p += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nBORANG KEBENARAN — ' + (topik||'[PROGRAM]').toUpperCase() + '\nNama Murid: _______________ Kelas: _______\n☐ SAYA MEMBERI KEBENARAN ☐ SAYA TIDAK MEMBERI KEBENARAN\nTandatangan: _______________ Tarikh: _______\n';
+    }
+    if (inclS.indexOf('Versi WhatsApp') !== -1) {
+      p += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nVERSI MESEJ WHATSAPP (ringkas, max 120 patah perkataan, boleh guna emoji):\n[Tulis versi WA yang mesra, padat dan mengandungi SEMUA maklumat penting dari surat di atas]\n';
+    }
+    if (inclS.indexOf('Versi BI') !== -1) {
+      p += '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nENGLISH VERSION:\n[Terjemahan surat di atas ke dalam Bahasa Inggeris formal — ikut format surat rasmi KPM]\n';
+    }
+    p += langNote;
+    tips = ['+ Surat peringatan kedua', '+ Format e-mel rasmi', '+ Surat penghargaan selepas program', '+ Edaran kepada guru-guru', '+ Pengumuman taklimat ringkas'];
+  }
+
+  else if (task === 'analisis') {
+    var janalisis = gmv('janalisis');
+    var out_an    = gmv('out_an');
+
+    p  = 'Bertindak sebagai pakar analisis data pendidikan dan pentaksiran untuk ' + level + ' Malaysia.\n\n';
+    p += 'BINA RANGKA KERJA ANALISIS PRESTASI INI:\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    p += 'Mata Pelajaran : ' + (subj||'[Mata Pelajaran]') + '\n';
+    p += 'Peperiksaan    : ' + (topik||'[Nama Peperiksaan]') + '\n';
+    p += 'Peringkat      : ' + level + ', ' + year + '\n';
+    if (bilNote) p += bilNote + '\n';
+    p += 'Analisis       : ' + (janalisis.length ? janalisis.join(', ') : 'Keseluruhan') + '\n';
+    p += 'Output         : ' + (out_an.length ? out_an.join(', ') : 'Laporan lengkap') + '\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    if (extra) p += '\nKonteks tambahan:\n' + extra + '\n';
+    p += '\n';
+
+    if (janalisis.indexOf('Keputusan keseluruhan') !== -1 || janalisis.length === 0) {
+      p += '① KEPUTUSAN KESELURUHAN\n';
+      p += '┌────────────────────────────────────┐\n';
+      p += '│ Jumlah murid : ___                 │\n';
+      p += '│ Lulus: ___ (___%) Gagal: ___ (___%)│\n';
+      p += '├────┬──────┬──────┬──────┬──────────┤\n';
+      p += '│ A  │  B   │  C   │  D   │  E/Gagal │\n';
+      p += '│__% │ __%  │ __%  │ __%  │   __%    │\n';
+      p += '├────┴──────┴──────┴──────┴──────────┤\n';
+      p += '│ Min: ___ | Tertinggi: ___ | Rendah: ___│\n';
+      p += '└────────────────────────────────────┘\n\n';
+    }
+    if (janalisis.indexOf('Banding tahun lepas') !== -1) {
+      p += '② PERBANDINGAN DENGAN TAHUN LEPAS\n';
+      p += '| Perkara     | Tahun Ini | Tahun Lepas | +/- |\n|-------------|-----------|-------------|-----|\n';
+      p += '| % Lulus     |           |             |     |\n| Min Markah  |           |             |     |\n| % Gred A    |           |             |     |\n';
+      p += 'ANALISIS: [Apakah sebab peningkatan / kemerosotan dalam ' + (subj||'subjek') + ' ' + year + '?]\n\n';
+    }
+    if (janalisis.indexOf('Analisis item') !== -1) {
+      p += '③ ANALISIS ITEM / SOALAN\n';
+      p += '| Soalan | Topik/Konstruk | % Betul | Aras Sukar | Tindakan |\n|--------|---------------|---------|------------|----------|\n';
+      p += 'RUMUSAN: Topik/konstruk PALING LEMAH: ___\nCadangan: [tindakan spesifik untuk topik lemah dalam ' + (subj||'subjek ini') + ']\n\n';
+    }
+    if (janalisis.indexOf('Kumpulan murid') !== -1) {
+      p += '④ ANALISIS KUMPULAN MURID\n';
+      p += '🏆 CEMERLANG (A): ___ murid — Strategi pengayaan: [SPESIFIK untuk ' + (subj||'subjek') + ']\n';
+      p += '📘 SEDERHANA (B-C): ___ murid — Strategi pengukuhan: [aktiviti / bahan sesuai]\n';
+      p += '⚠️ LEMAH/AT-RISK (D/E/Gagal): ___ murid — Program intervensi: [langkah konkrit]\n\n';
+    }
+    if (janalisis.indexOf('Topik lemah') !== -1) {
+      p += '⑤ PUNCA KELEMAHAN (ROOT CAUSE)\n[Analisis MENDALAM mengapa murid lemah dalam topik/konstruk yang dikenal pasti dalam "' + (subj||'subjek') + '" — pedagogi, pemahaman asas, faktor murid, faktor persekitaran]\n\n';
+    }
+    p += '⑥ PELAN TINDAKAN SEGERA\n';
+    p += '| Bil | Masalah | Tindakan / Intervensi | PJ | Tarikh |\n|-----|---------|----------------------|----+--------|\n';
+    p += '|  1  | [topik lemah] | [tindakan KONKRIT, bukan umum] | Guru ' + (subj||'[Subj]') + ' | [tarikh] |\n\n';
+    if (out_an.indexOf('Laporan panitia') !== -1) {
+      p += '⑦ RINGKASAN EKSEKUTIF — MESYUARAT PANITIA\n[Ringkasan 1 muka surat — angka keputusan, topik lemah, pelan tindakan, sasaran seterusnya]\n\n';
+    }
+    if (out_an.indexOf('Cadangan intervensi') !== -1) {
+      p += '⑧ CADANGAN PROGRAM INTERVENSI\n[Cadangan SPESIFIK untuk ' + (subj||'subjek') + ' ' + year + ' — nama program, jenis aktiviti, bahan, masa pelaksanaan]\n';
+    }
+    p += langNote;
+    p += '\nNOTA: Ini adalah rangka kerja analisis. Masukkan data sebenar murid anda ke dalam template ini.';
+    tips = ['+ Carta visual / graf cadangan', '+ Format laporan PPD/JPN', '+ Analisis 3 tahun berturutan', '+ Soalan intervensi murid lemah', '+ Template Google Sheets siap guna'];
+  }
+
+  else if (task === 'rubrik') {
+    var jrubrik  = gmv('jrubrik');
+    var kriteria = gmv('kriteria');
+    var markahR  = gv('f_markah');
+
+    p  = 'Bertindak sebagai pakar pentaksiran dan penilaian pendidikan ' + level + ' Malaysia.\n\n';
+    p += 'BINA INSTRUMEN PENILAIAN INI:\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    p += 'Mata Pelajaran : ' + (subj||'[Mata Pelajaran]') + '\n';
+    p += 'Perkara dinilai: ' + (topik||'[Tugasan/Aktiviti]') + '\n';
+    p += 'Peringkat      : ' + level + ', ' + year + '\n';
+    if (bilNote) p += bilNote + '\n';
+    p += 'Jenis instrumen: ' + (jrubrik.length ? jrubrik.join(', ') : 'Rubrik analitikal') + '\n';
+    p += 'Kriteria       : ' + (kriteria.length ? kriteria.join(', ') : 'Isi kandungan, Bahasa, Organisasi') + '\n';
+    if (markahR) p += 'Markah / Skala : ' + markahR + '\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    if (extra) p += '\nKonteks:\n' + extra + '\n';
+    p += '\n';
+
+    if (jrubrik.indexOf('Rubrik analitikal (jadual)') !== -1 || jrubrik.length === 0) {
+      p += '① RUBRIK ANALITIKAL — "' + (topik||'[Tugasan]') + '"\n\n';
+      p += '★ Setiap sel WAJIB mengandungi deskriptor JELAS dan SPESIFIK — guru dan murid MESTI faham tanpa penjelasan tambahan.\n\n';
+      p += '| Kriteria | Cemerlang (4) | Baik (3) | Memuaskan (2) | Lemah (1) | Markah |\n';
+      p += '|----------|---------------|----------|---------------|-----------|--------|\n';
+      var kList = kriteria.length ? kriteria : ['Isi Kandungan', 'Bahasa/Ekspresi', 'Organisasi'];
+      for (var ri = 0; ri < kList.length; ri++) {
+        p += '| **' + kList[ri] + '** | [deskriptor SPESIFIK] | [deskriptor baik] | [deskriptor memuaskan] | [deskriptor lemah] | /' + (markahR ? Math.round(parseInt(markahR)/kList.length) : '___') + ' |\n';
+      }
+      p += '| | | | | **JUMLAH** | **/' + (markahR||'___') + '** |\n\n';
+    }
+    if (jrubrik.indexOf('Skema esei') !== -1) {
+      p += '② SKEMA JAWAPAN ESEI — "' + (topik||'[Tugasan]') + '"\nMarkah penuh: ' + (markahR||'20') + ' markah\n\n';
+      p += '| Bahagian | Kandungan yang diterima | Markah |\n|----------|------------------------|--------|\n';
+      p += '| Isi Penting (IP) | [isi SPESIFIK yang boleh diterima] | _/_ |\n';
+      p += '| Huraian (H) | [penerangan cukup dan tepat] | _/_ |\n';
+      p += '| Huraian Lengkap (HL) | [elaborasi mendalam, kaitan] | _/_ |\n';
+      p += '| Contoh Relevan (C) | [contoh nyata / semasa] | _/_ |\n';
+      p += '| Kesimpulan (K) | [rumusan yang menjawab soalan] | _/_ |\n\n';
+    }
+    if (jrubrik.indexOf('Senarai semak guru') !== -1) {
+      p += '③ SENARAI SEMAK PEMERHATIAN GURU — "' + (topik||'[Tugasan]') + '"\n';
+      p += '[Bina minimum 10 kriteria yang BOLEH DIPERHATI — spesifik kepada "' + (topik||'tugasan') + '" dalam ' + (subj||'subjek ini') + ']\n';
+      p += '☐ 1. [kriteria boleh perhati — spesifik]\n☐ 2. ...\n\n';
+    }
+    if (jrubrik.indexOf('Penilaian kendiri') !== -1) {
+      p += '④ PENILAIAN KENDIRI MURID — bahasa MESRA MURID\n';
+      p += '1. Benda terbaik yang saya buat: ...\n2. Saya masih perlu perbaiki: ...\n3. Bintang untuk diri saya: ⭐⭐⭐⭐⭐ (bulatkan)\n\n';
+    }
+    if (jrubrik.indexOf('Penilaian rakan sebaya') !== -1) {
+      p += '⑤ PENILAIAN RAKAN SEBAYA — struktur 2 Stars & 1 Wish\n';
+      p += '⭐ Perkara baik (1): ...\n⭐ Perkara baik (2): ...\n🌟 Satu cadangan: ...\n';
+    }
+    p += langNote;
+    tips = ['+ Rubrik pembentangan lisan', '+ Rubrik projek kumpulan', '+ Versi bahasa murid (simplified)', '+ Rubrik amali / eksperimen', '+ Format Google Forms untuk rubrik digital'];
+  }
+
+  else if (task === 'aktiviti') {
+    var jakt     = gmv('jakt');
+    var kekangan = gmv('kekangan');
+    var noNet    = kekangan.indexOf('Tanpa internet') !== -1;
+    var noDev    = kekangan.indexOf('Tanpa peranti') !== -1;
+    var bigCls   = kekangan.indexOf('Kelas besar 35+') !== -1;
+    var weakCls  = kekangan.indexOf('Kelas lemah') !== -1;
+    var limTime  = kekangan.indexOf('Masa terhad') !== -1;
+
+    p  = 'Bertindak sebagai guru inovatif pakar dalam pembelajaran aktif dan pedagogi abad ke-21.\n\n';
+    p += 'BINA PAKEJ AKTIVITI PEMBELAJARAN INI:\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    p += 'Mata Pelajaran : ' + (subj||'[Mata Pelajaran]') + '\n';
+    p += 'Topik          : ' + (topik||'[Topik]') + '\n';
+    p += 'Peringkat      : ' + level + ', ' + year + '\n';
+    if (bilNote) p += bilNote + '\n';
+    p += 'Aktiviti       : ' + (jakt.length ? jakt.join(', ') : 'Pelbagai jenis') + '\n';
+    p += 'Kekangan kelas : ' + (kekangan.length ? kekangan.join(', ') : 'Tiada kekangan khas') + '\n';
+    p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+    if (extra) p += '\nPermintaan khas:\n' + extra + '\n';
+    p += '\nSEMUA AKTIVITI MESTI MEMENUHI KEKANGAN:\n';
+    if (noNet)  p += '★ TANPA INTERNET — aktiviti offline sepenuhnya\n';
+    if (noDev)  p += '★ TANPA PERANTI DIGITAL — bahan fizikal sahaja\n';
+    if (bigCls) p += '★ KELAS BESAR (' + (bil||'35+') + ' murid) — kawal kelas, bukan huru-hara\n';
+    if (weakCls) p += '★ KELAS LEMAH — arahan mudah, scaffolding tinggi\n';
+    if (limTime) p += '★ MASA TERHAD — aktiviti padat dan berkesan\n';
+    p += '\n';
+
+    if (jakt.indexOf('Ice-breaker') !== -1 || jakt.length === 0) {
+      p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n① ICE-BREAKER / PEMBUKA — ' + (limTime ? '5 minit' : '5–8 minit') + '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+      p += 'Nama aktiviti: [nama kreatif berkaitan "' + (topik||'topik') + '"]\n';
+      p += 'Bahan: [' + (noDev || noNet ? 'TIADA peranti — bahan fizikal mudah sahaja' : 'minimum, mudah disediakan') + ']\n';
+      if (bigCls) p += 'Pengurusan kelas besar (' + (bil||'35+') + ' murid): [arahan yang jelas — bagaimana aktiviti boleh diuruskan]\n';
+      p += 'Langkah: 1. [arahan jelas] 2. [langkah kedua] 3. [langkah ketiga]\n';
+      p += 'Kaitan dengan topik "' + (topik||'topik') + '": [jambatan kognitif]\n\n';
+    }
+    if (jakt.indexOf('Kumpulan PAK-21') !== -1 || jakt.length === 0) {
+      p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n② AKTIVITI KUMPULAN PAK-21 — "' + (topik||'topik') + '"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+      p += 'Saiz kumpulan: ' + (bigCls ? '4–5 orang (lebih besar menyebabkan huru-hara)' : '4–5 orang') + '\n';
+      p += 'Peranan: Pemimpin | Penulis | Pembentang | Pengawal masa\n';
+      p += 'Langkah aktiviti (dengan masa):\n1. (___ min) [Langkah 1]\n2. (___ min) [Langkah 2]\n3. (___ min) [Langkah 3]\n';
+      p += 'Soalan perbincangan KBAT:\n1. [Soalan mengapa/bagaimana/nilaikan berkaitan "' + (topik||'topik') + '"]\n2. [Soalan aras lebih tinggi]\n';
+      p += 'Format output: [poster mini / bentang 2 minit / gallery walk]\n';
+      if (weakCls) p += 'Scaffolding untuk kelas lemah: [sokongan tambahan yang diperlukan]\n';
+      p += '\n';
+    }
+    if (jakt.indexOf('Kuiz/Pertandingan') !== -1 || jakt.length === 0) {
+      p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n③ KUIZ / PERTANDINGAN — "' + (topik||'topik') + '"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+      p += 'Format: ' + (noNet || noDev ? 'KUIZ LISAN / WHITEBOARD / BUZZER — TIADA platform digital' : 'Boleh guna Quizziz / Kahoot / atau lisan') + '\n';
+      p += '10 SOALAN KUIZ tentang "' + (topik||'topik') + '" — sesuai untuk ' + year + ':\n';
+      p += weakCls ? '[Soalan aras mudah-sederhana, bahasa ringkas]\n' : '[Campuran mudah hingga mencabar]\n';
+      p += '1. [Soalan 1] → Jawapan: ___\n2. [Soalan 2] → Jawapan: ___\n... (isi hingga 10 soalan)\n';
+      p += 'Sistem mata: [cara mengira pemenang]\nPengurusan: [cara guru uruskan kuiz]\n\n';
+    }
+    if (jakt.indexOf('Permainan kad/papan') !== -1) {
+      p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n④ PERMAINAN KAD / PAPAN — "' + (topik||'topik') + '"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+      p += 'Nama permainan: [nama unik dan menarik]\n';
+      p += 'Bahan: [senarai bahan MUDAH disediakan guru — ' + (noDev ? 'TIADA teknologi' : 'minimum') + ']\n';
+      p += 'Cara bermain: 1. [Persediaan] 2. [Cara mula] 3. [Cara bermain] 4. [Cara tamat]\n';
+      p += 'Kemahiran ' + (subj||'subjek') + ' yang dipelajari: [spesifik]\nTemplate kad: [huraikan reka bentuk]\n\n';
+    }
+    if (jakt.indexOf('Aktiviti digital') !== -1 && !noNet && !noDev) {
+      p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n⑤ AKTIVITI DIGITAL — "' + (topik||'topik') + '"\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+      p += 'Platform: [pilih yang PALING SESUAI untuk "' + (topik||'topik') + '" — Quizziz / Wordwall / Padlet / Mentimeter]\n';
+      p += 'Jenis aktiviti: [huraikan aktiviti spesifik — bukan sekadar "buat kuiz"]\n';
+      p += 'Setup guru: [arahan mudah, < 10 minit]\nCara murid sertai: [arahan langkah demi langkah]\n\n';
+    }
+    if (jakt.indexOf('PBL') !== -1) {
+      p += '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n⑥ PROJEK BERASASKAN MASALAH (PBL)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n';
+      p += 'Konteks masalah: [situasi realistik berkaitan "' + (topik||'topik') + '" — relevan dengan murid ' + year + ']\n';
+      p += 'Soalan pemacu: [soalan terbuka yang memerlukan kajian — berkaitan "' + (topik||'topik') + '"]\n';
+      p += 'Deliverable: [apa yang murid hasilkan]\nKriteria kejayaan: [jelas dan boleh diukur]\n';
+    }
+    p += langNote;
+    tips = ['+ Variasi untuk kelas 40+ murid', '+ Versi tanpa internet / offline', '+ Penilaian / markah aktiviti', '+ Integrasi STEM/PAK-21', '+ Kerja rumah berasaskan aktiviti ini'];
+  }
+
+  // ── RENDER ──────────────────────────────────────────────────────────────
+  document.getElementById('pbox').textContent = p;
+  document.getElementById('oT').textContent = TNAMES[L][TASK_KEYS.indexOf(task)] || task;
+  document.getElementById('oS').textContent = (subj||'Semua Subj') + ' · ' + year;
+  document.getElementById('oP').textContent = plat;
+  document.getElementById('trow').innerHTML = '';
+  for (var ti = 0; ti < tips.length; ti++) {
+    var btn = document.createElement('button');
+    btn.className = 'tip';
+    btn.textContent = tips[ti];
+    btn.setAttribute('data-tip', tips[ti]);
+    btn.onclick = function() { addTip(this.getAttribute('data-tip')); };
+    document.getElementById('trow').appendChild(btn);
+  }
+  var ow = document.getElementById('outWrap');
+  ow.style.display = 'block';
+  setTimeout(function(){ ow.scrollIntoView({behavior:'smooth', block:'nearest'}); }, 120);
+}
+
+function addTip(t) {
+  var el = document.getElementById('f_extra');
+  if (!el) return;
+  var cur   = el.value.trim();
+  var clean = t.replace(/^\+\s*/, '').trim();
+  el.value  = cur ? cur + (cur.slice(-1) === '.' || cur.slice(-1) === ',' ? ' ' : '. ') + clean : clean;
+  generate();
+}
+
+function copyP() {
+  var txt = document.getElementById('pbox').textContent;
+  navigator.clipboard.writeText(txt).then(function(){ showToast(u('toast')); });
+}
+
+function shareWA() {
+  var txt = document.getElementById('pbox').textContent;
+  var s   = txt.length > 800 ? txt.substring(0, 800) + '...\n[versi penuh di GuruPrompt]' : txt;
+  window.open('https://api.whatsapp.com/send?text=' + encodeURIComponent(s), '_blank');
+}
+
+function showToast(m) {
+  var el = document.getElementById('toast');
+  el.textContent = m;
+  el.classList.add('show');
+  setTimeout(function(){ el.classList.remove('show'); }, 2800);
+}
+
+// init
+buildForm('rph');
+</script>
+</body>
+</html>
